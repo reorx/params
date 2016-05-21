@@ -1,15 +1,13 @@
 # coding=utf-8
 
-__version__ = '0.1.0'
-
-
 import re
 import copy
 import uuid
 import datetime
-import functools
 
-from .utils import to_unicode, json_decode
+from .utils import to_unicode
+
+__version__ = '0.1.0'
 
 
 # TODO: use ValueError instead ValidationError
@@ -440,49 +438,8 @@ class ParamSet(object):
             u','.join([u'%s=%s' % (k, v) for k, v in self.data.iteritems()]),
             self.errors)
 
-    @classmethod
-    def validation_required(cls, method):
-        @functools.wraps(method)
-        def wrapper(hdr, *args, **kwgs):
-            if 'json' == cls.__datatype__:
-                try:
-                    arguments = json_decode(hdr.request.body)
-                except Exception, e:
-                    raise ParamsInvalidError('JSON decode failed: %s' % e)
-            else:
-                arguments = hdr.request.arguments
-            # Instantiate ParamSet
-            print 'cls', cls.__datatype__
-            params = cls(**arguments)
-            if params.errors:
-                raise ParamsInvalidError(params.errors)
-            hdr.params = params
-            return method(hdr, *args, **kwgs)
-        return wrapper
-
 
 def define_params(kwargs, datatype='form'):
     param_class = type('AutoCreatedParams', (ParamSet, ), kwargs)
     param_class.__datatype__ = datatype
-    return param_class.validation_required
-
-
-def simple_params(datatype='form'):
-    assert datatype in ('form', 'json')
-
-    def decorator(method):
-        @functools.wraps(method)
-        def wrapper(hdr, *args, **kwgs):
-            if 'json' == datatype:
-                try:
-                    params = json_decode(hdr.request.body)
-                except Exception, e:
-                    raise ParamsInvalidError('JSON decode failed: %s' % e)
-            else:
-                params = dict((k, v[0])
-                              for k, v in hdr.request.arguments.iteritems())
-
-            hdr.params = params
-            return method(hdr, *args, **kwgs)
-        return wrapper
-    return decorator
+    return param_class
