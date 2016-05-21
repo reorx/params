@@ -37,7 +37,13 @@ class ParamsInvalidError(Exception):
             self.errors = [errors, ]
 
     def __unicode__(self):
-        return u'Invalid params: %s' % self.errors
+        msg = u''
+        for k, e in self.errors:
+            msg = msg + u'{}: {}\n'.format(k, e)
+        return u'Invalid params: {}'.format(msg)
+
+    def __str__(self):
+        return unicode(self).encode('utf8')
 
 
 # don't know where to find the <type '_sre.SRE_Pattern'>
@@ -336,6 +342,7 @@ class ParamSet(object):
     """
     __metaclass__ = ParamSetMeta
     __datatype__ = 'form'  # or 'json'
+    raise_if_invalid = False
 
     @classmethod
     def keys(cls):
@@ -359,9 +366,9 @@ class ParamSet(object):
         self.data = {}
         self.errors = []
 
-        self.validate()
+        self.validate(raise_if_invalid=self.raise_if_invalid)
 
-    def validate(self):
+    def validate(self, raise_if_invalid=False):
         for name, field in self.__class__._fields.iteritems():
             key = field.key
             if key in self._raw_data:
@@ -406,6 +413,9 @@ class ParamSet(object):
                         getattr(self, attr_name)()
                     except ValidationError, e:
                         self.errors.append(e)
+        if raise_if_invalid:
+            if self.errors:
+                raise ParamsInvalidError(self.errors)
 
     def kwargs(self, *args):
         d = {}
@@ -439,7 +449,8 @@ class ParamSet(object):
             self.errors)
 
 
-def define_params(kwargs, datatype='form'):
+def define_params(kwargs, datatype='form', raise_if_invalid=False):
     param_class = type('AutoCreatedParams', (ParamSet, ), kwargs)
     param_class.__datatype__ = datatype
+    param_class.raise_if_invalid = raise_if_invalid
     return param_class
