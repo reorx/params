@@ -30,17 +30,13 @@ class ValidationError(Exception):
 
 class ParamsInvalidError(Exception):
     def __init__(self, errors):
-        """Make sure no string only unicode in errors"""
-        if isinstance(errors, list):
-            self.errors = errors
-        else:
-            self.errors = [errors, ]
+        """errors is list contains key, value pairs"""
+        if not isinstance(errors, list):
+            raise TypeError('errors must be a list')
+        self.errors = errors
 
     def __unicode__(self):
-        msg = u''
-        for k, e in self.errors:
-            msg = msg + u'{}: {}\n'.format(k, e)
-        return u'Invalid params: {}'.format(msg)
+        return u'Invalid params: ' + u'\n'.join(u'{}: {}'.format(k, e) for k, e in self.errors)
 
     def __str__(self):
         return unicode(self).encode('utf8')
