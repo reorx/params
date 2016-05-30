@@ -3,6 +3,7 @@
 
 import sys
 import json
+import copy
 
 
 PY3 = sys.version_info >= (3,)
@@ -32,6 +33,42 @@ def to_unicode(value):
             "Expected bytes, unicode, or None; got %r" % type(value)
         )
     return value.decode("utf-8")
+
+
+def _copy_dict(x, memo):
+    y = {}
+    memo[id(x)] = y
+    for key, value in x.iteritems():
+        y[key] = unicode_copy(value, memo)
+    return y
+
+
+def _copy_list(x, memo):
+    y = []
+    memo[id(x)] = y
+    for a in x:
+        y.append(unicode_copy(a, memo))
+    return y
+
+def unicode_copy(x, memo=None, _nil=[]):
+    if memo is None:
+        memo = {}
+
+    d = id(x)
+    y = memo.get(d, _nil)
+    if y is not _nil:
+        return y
+
+    if isinstance(x, dict):
+        y = _copy_dict(x, memo)
+    elif isinstance(x, list):
+        y = _copy_list(x, memo)
+    elif isinstance(x, str):
+        y = to_unicode(x)
+
+    memo[d] = y
+    copy._keep_alive(x, memo) # Make sure x lives at least as long as d
+    return y
 
 
 _BASESTRING_TYPES = (basestring_type, type(None))
