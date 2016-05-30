@@ -7,6 +7,15 @@ from ..utils import json_decode
 from ..core import ParamsInvalidError
 
 
+# Snippet for format tornado self.arguments
+# for k in raw_data:
+#     if isinstance(raw_data[k], list):
+#         if len(raw_data[k]) > 1:
+#             self._raw_data[k] = map(to_unicode, raw_data[k])
+#         else:
+#             self._raw_data[k] = to_unicode(raw_data[k][0])
+
+
 def simple_params(datatype='form'):
     assert datatype in ('form', 'json')
 
