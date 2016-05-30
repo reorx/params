@@ -65,6 +65,8 @@ def unicode_copy(x, memo=None, _nil=[]):
         y = _copy_list(x, memo)
     elif isinstance(x, str):
         y = to_unicode(x)
+    else:
+        y = x
 
     memo[d] = y
     copy._keep_alive(x, memo) # Make sure x lives at least as long as d

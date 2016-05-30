@@ -420,7 +420,7 @@ class ParamSet(object):
     def __unicode__(self):
         return u'<%s: %s; errors=%s>' % (
             self.__class__.__name__,
-            u','.join([u'%s=%s' % (k, v) for k, v in self.data.iteritems()]),
+            u','.join([u'%s=%s' % (k, repr(v)) for k, v in self.data.iteritems()]),
             self.errors)
 
 
