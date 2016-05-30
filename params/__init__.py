@@ -5,7 +5,7 @@ import copy
 import uuid
 import datetime
 
-from .utils import to_unicode
+from .utils import to_unicode, unicode_copy
 
 __version__ = '0.1.0'
 
@@ -329,40 +329,19 @@ class ParamSetMeta(type):
         return type.__new__(cls, name, bases, attrs)
 
 
-# TODO user-define check function
 class ParamSet(object):
-    """
-    item in `errors` could be:
-        tuple: (key, ValidationError)
-        exception: ValidationError
-    """
     __metaclass__ = ParamSetMeta
-    __datatype__ = 'form'  # or 'json'
-    raise_if_invalid = False
 
     @classmethod
     def keys(cls):
         return [i.key for i in cls._fields.itervalues()]
 
-    def __init__(self, **kwargs):
-        if 'form' == self.__datatype__:
-            self._raw_data = {}
-            # Processing on handler.request.arguments, utf-8 values
-            for k in kwargs:
-                if isinstance(kwargs[k], list):
-                    if len(kwargs[k]) > 1:
-                        self._raw_data[k] = map(to_unicode, kwargs[k])
-                    else:
-                        self._raw_data[k] = to_unicode(kwargs[k][0])
-                else:
-                    self._raw_data[k] = to_unicode(kwargs[k])
-        else:
-            self._raw_data = kwargs
-
+    def __init__(self, raw_data, raise_if_invalid=True):
+        self._raw_data = unicode_copy(raw_data)
         self.data = {}
         self.errors = []
 
-        self.validate(raise_if_invalid=self.raise_if_invalid)
+        self.validate(raise_if_invalid=raise_if_invalid)
 
     def validate(self, raise_if_invalid=False):
         for name, field in self.__class__._fields.iteritems():
@@ -445,8 +424,6 @@ class ParamSet(object):
             self.errors)
 
 
-def define_params(kwargs, datatype='form', raise_if_invalid=False):
+def define_params(kwargs, datatype='form'):
     param_class = type('AutoCreatedParams', (ParamSet, ), kwargs)
-    param_class.__datatype__ = datatype
-    param_class.raise_if_invalid = raise_if_invalid
     return param_class
