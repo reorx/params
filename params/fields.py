@@ -32,11 +32,11 @@ class RegexField(Field):
             try:
                 c_value = pattern_type(value)
             except Exception, e:
-                self.raise_exc(
+                raise self.format_exc(
                     'value could not be converted into type "%s"'
                     'of regex pattern, error: %s' % (pattern_type, e))
         if not self.regex.search(c_value):
-            self.raise_exc(
+            raise self.format_exc(
                 'regex pattern (%s, %s) is not match with value "%s"' %
                 (self.regex.pattern, self.regex.flags, c_value))
         return value
@@ -47,7 +47,7 @@ class WordField(RegexField):
     >>> v = WordField('should not contain punctuations')
     >>> s = 'oh123,'
     >>> v.validate(s)
-    ValidationError: should not contain punctuations
+    ValueError: should not contain punctuations
     """
 
     regex = re.compile(r'^[\w]+$')
@@ -103,15 +103,15 @@ class IntegerField(Field):
         try:
             value = int(value)
         except (ValueError, TypeError):
-            self.raise_exc(
+            raise self.format_exc(
                 'could not convert value "%s" into int type' % value)
 
         if self.min:
             if value < self.min:
-                self.raise_exc('value is too small, min %s' % self.min)
+                raise self.format_exc('value is too small, min %s' % self.min)
         if self.max:
             if value > self.max:
-                self.raise_exc('vaule is too big, max %s' % self.max)
+                raise self.format_exc('vaule is too big, max %s' % self.max)
 
         return value
 
@@ -133,7 +133,7 @@ class DateField(Field):
         try:
             value = datetime.datetime.strptime(value, self.datefmt)
         except ValueError:
-            self.raise_exc(
+            raise self.format_exc(
                 'Could not convert %s to datetime object by format %s' %
                 (value, self.datefmt))
         return value
@@ -148,7 +148,7 @@ class ListField(Field):
 
     def _validate_type(self, value):
         if not isinstance(value, list):
-            # self.raise_exc('Not a list')
+            # raise self.format_exc('Not a list')
             value = [value]
 
         if self.item_field:
@@ -163,7 +163,7 @@ class ListField(Field):
                 if i not in self.choices:
                     bad_values.append(i)
         if bad_values:
-            self.raise_exc('%s is/are not allowed' % bad_values)
+            raise self.format_exc('%s is/are not allowed' % bad_values)
 
         return value
 
@@ -173,4 +173,4 @@ class UUIDField(Field):
         try:
             return uuid.UUID(value)
         except ValueError, e:
-            self.raise_exc('Invalid uuid string: %s' % e)
+            raise self.format_exc('Invalid uuid string: %s' % e)

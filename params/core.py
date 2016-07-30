@@ -4,25 +4,7 @@ import copy
 from .utils import unicode_copy
 
 
-# TODO: use ValueError instead ValidationError
-
-class ValidationError(Exception):
-    """
-    error occur when validating values
-    """
-    def __init__(self, description=None, error_message=None):
-        self.description = description
-        self.error_message = error_message
-
-    def __unicode__(self):
-        # return '%s (%s)' % (self.description, self.error_message) if self.error_message else self.description
-        return self.description or self.error_message
-
-    def __repr__(self):
-        return str(self)
-
-
-class ParamsInvalidError(Exception):
+class InvalidParams(Exception):
     def __init__(self, errors):
         """errors is list contains key, value pairs"""
         if not isinstance(errors, list):
@@ -65,8 +47,8 @@ class Field(object):
     # def name(self):
     #     raise NotImplementedError
 
-    def raise_exc(self, error_message=None):
-        raise ValidationError(self.description, error_message)
+    def format_exc(self, error_message=None):
+        raise ValueError(error_message or self.description)
 
     def _validate_length(self, value):
         length = self.length
@@ -74,26 +56,26 @@ class Field(object):
 
         if isinstance(length, int):
             if value_len != length:
-                self.raise_exc(
+                raise self.format_exc(
                     'Length of value should be %s, but %s' %
                     (length, value_len))
         else:
             if self.min_length:
                 if value_len < self.min_length:
-                    self.raise_exc(
+                    raise self.format_exc(
                         'Length of value should be larger than %s' %
                         self.min_length)
             else:
                 min, max = length
                 if value_len < min or value_len > max:
-                    self.raise_exc(
+                    raise self.format_exc(
                         'Length should be >= %s and <= %s, but %s' %
                         (min, max, value_len))
         return value
 
     def _validate_choices(self, value):
         if value not in self.choices:
-            self.raise_exc(
+            raise self.format_exc(
                 'value "%s" is not one of %s' % (value, self.choices))
         return value
 
@@ -107,7 +89,7 @@ class Field(object):
             if self.null:
                 return value
             else:
-                self.raise_exc('empty value is not allowed')
+                raise self.format_exc('empty value is not allowed')
 
         if self.length:
             self._validate_length(value)
@@ -177,16 +159,13 @@ class ParamSet(object):
 
                 try:
                     value = field.validate(value)
-                except ValidationError, e:
+                except ValueError, e:
                     self.errors.append((key, e))
                 else:
                     self.data[key] = value
             else:
                 if field.required:
-                    try:
-                        field.raise_exc('%s is required' % key)
-                    except ValidationError, e:
-                        self.errors.append((key, e))
+                    self.errors.append((key, field.format_exc('%s is required' % key)))
                 # elif field.default is not None:
                 #     self.data[key] = field.default
 
@@ -200,7 +179,7 @@ class ParamSet(object):
                     if key in self.data:
                         try:
                             value = getattr(self, attr_name)(self.data[key])
-                        except ValidationError, e:
+                        except ValueError, e:
                             self.errors.append((key, e))
                         if field.null is not True:
                             assert value is not None, (
@@ -211,11 +190,11 @@ class ParamSet(object):
                 else:
                     try:
                         getattr(self, attr_name)()
-                    except ValidationError, e:
+                    except ValueError, e:
                         self.errors.append(e)
         if raise_if_invalid:
             if self.errors:
-                raise ParamsInvalidError(self.errors)
+                raise InvalidParams(self.errors)
 
     def kwargs(self, *args):
         d = {}
