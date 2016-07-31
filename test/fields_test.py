@@ -1,6 +1,8 @@
 # coding: utf-8
 
+from nose.tools import eq_ as equal
 from nose.tools import assert_raises
+import uuid
 from params.fields import (
     RegexField,
     WordField,
@@ -34,7 +36,7 @@ def test_regex():
 def check_regex(pattern, match, result):
     field = RegexField(pattern=pattern)
     if result:
-        field.validate(match)
+        equal(match, field.validate(match))
     else:
         with assert_raises(ValueError):
             field.validate(match)
@@ -42,9 +44,12 @@ def check_regex(pattern, match, result):
 
 def test_words():
     f0 = WordField()
-    f0.validate('')
-    f0.validate('goodstr')
-    f0.validate('goodstr_with_underscore')
+    s = ''
+    equal(s, f0.validate(s))
+    s = 'goodstr'
+    equal(s, f0.validate(s))
+    s = 'goodstr_with_underscore'
+    equal(s, f0.validate(s))
 
     with assert_raises(ValueError):
         f0.validate('should not contain space')
@@ -52,8 +57,10 @@ def test_words():
         f0.validate('miscsymbols*(*^&')
 
     f1 = WordField(length=(4, 8))
-    f1.validate('four')
-    f1.validate('fourfour')
+    s = 'four'
+    equal(s, f1.validate(s))
+    s = 'fourfour'
+    equal(s, f1.validate(s))
 
     with assert_raises(ValueError):
         f1.validate('s')
@@ -84,7 +91,7 @@ def test_email():
 def check_email(email, iseq):
     f = EmailField()
     if iseq:
-        f.validate(email)
+        equal(email, f.validate(email))
     else:
         assert_raises(ValueError, f.validate, email)
 
@@ -106,7 +113,7 @@ def test_url():
 def check_url(url, iseq):
     f = URLField()
     if iseq:
-        f.validate(url)
+        equal(url, f.validate(url))
     else:
         assert_raises(ValueError, f.validate, url)
 
@@ -130,7 +137,7 @@ def test_int():
 def check_int(kwargs, v, iseq):
     f = IntegerField(**kwargs)
     if iseq:
-        f.validate(v)
+        equal(int(v), f.validate(v))
     else:
         print v, f.min, f.max
         assert_raises(ValueError, f.validate, v)
@@ -139,8 +146,10 @@ def check_int(kwargs, v, iseq):
 def test_simple_list():
     list_field = ListField(choices=['a', 'b', 'c'])
 
-    list_field.validate(['a'])
-    list_field.validate(['a', 'b', 'c'])
+    l = ['a']
+    equal(l, list_field.validate(l))
+    l = ['a', 'b', 'c']
+    equal(l, list_field.validate(l))
 
     with assert_raises(ValueError):
         list_field.validate(['b', 'c', 'd'])
@@ -151,7 +160,7 @@ def test_simple_list():
 def test_type_list():
     list_field = ListField(item_field=IntegerField(min=1, max=9), choices=[1, 2, 3])
 
-    list_field.validate(['1', '2', '3'])
+    equal([1, 2, 3], list_field.validate(['1', '2', '3']))
 
     with assert_raises(ValueError):
         list_field.validate(['0', '1', '2'])
@@ -175,7 +184,7 @@ def test_uuid():
 def check_uuid(v, iseq):
     f = UUIDField()
     if iseq:
-        f.validate(v)
+        equal(uuid.UUID(v), f.validate(v))
     else:
         with assert_raises(ValueError):
             f.validate(v)

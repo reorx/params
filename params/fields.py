@@ -7,10 +7,12 @@ import datetime
 from .core import Field
 
 __all__ = [
+    'StringField',
     'RegexField',
     'WordField',
     'EmailField',
     'URLField',
+    'NumberField',
     'IntegerField',
     'FloatField',
     'ListField',
@@ -61,6 +63,8 @@ class StringField(Field):
         # validate length
         if self.length:
             value = self._validate_length(value)
+
+        return value
 
     def _validate_length(self, value):
         length = self.length
