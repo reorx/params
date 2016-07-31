@@ -6,6 +6,18 @@ import datetime
 
 from .core import Field
 
+__all__ = [
+    'RegexField',
+    'WordField',
+    'EmailField',
+    'URLField',
+    'IntegerField',
+    'FloatField',
+    'ListField',
+    'UUIDField',
+    'DateField',
+]
+
 
 # don't know where to find the <type '_sre.SRE_Pattern'>
 _pattern_class = type(re.compile(''))
