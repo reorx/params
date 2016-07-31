@@ -50,6 +50,7 @@ def _copy_list(x, memo):
         y.append(unicode_copy(a, memo))
     return y
 
+
 def unicode_copy(x, memo=None, _nil=[]):
     if memo is None:
         memo = {}
@@ -69,7 +70,7 @@ def unicode_copy(x, memo=None, _nil=[]):
         y = x
 
     memo[d] = y
-    copy._keep_alive(x, memo) # Make sure x lives at least as long as d
+    copy._keep_alive(x, memo)  # Make sure x lives at least as long as d
     return y
 
 
@@ -97,3 +98,9 @@ def to_basestring(value):
 def json_decode(value):
     """Returns Python objects for the given JSON string."""
     return json.loads(to_basestring(value))
+
+
+def is_empty_string(v):
+    if v == '' or v == u'':
+        return True
+    return False

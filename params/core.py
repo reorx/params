@@ -1,7 +1,8 @@
 # coding: utf-8
 
 import copy
-from .utils import unicode_copy
+from .utils import is_empty_string, unicode_copy
+
 __all__ = [
     'InvalidParams',
     'Field',
@@ -28,26 +29,21 @@ class Field(object):
     name = None
     with_choices = True
 
-    def __init__(self, description=None, key=None, required=False,
-                 length=None, choices=None, default=None, null=True):
+    def __init__(
+            self, description=None,
+            null=True, choices=None,
+            key=None, required=False, default=None):
+        """
+        null, choices, work on Field.validate
+        key, required, default, work on ParamSet.validate
+        """
         self.description = description  # default message
-        self.required = required  # used with ParamSet
-        self.choices = choices
-        self.key = key
-        self.default = default
         self.null = null
+        self.choices = choices
 
-        self.min_length = None
-        assert length is None or isinstance(length, (int, tuple))
-        if isinstance(length, int):
-            assert length > 0
-        if isinstance(length, tuple):
-            assert len(length) == 2 and length[0] > 0
-            if length[1] == 0:
-                self.min_length = length[0]
-            else:
-                assert length[1] > length[0]
-        self.length = length
+        self.key = key
+        self.required = required
+        self.default = default
 
     # @property
     # def name(self):
@@ -55,29 +51,6 @@ class Field(object):
 
     def format_exc(self, error_message=None):
         raise ValueError(error_message or self.description)
-
-    def _validate_length(self, value):
-        length = self.length
-        value_len = len(value)
-
-        if isinstance(length, int):
-            if value_len != length:
-                raise self.format_exc(
-                    'Length of value should be %s, but %s' %
-                    (length, value_len))
-        else:
-            if self.min_length:
-                if value_len < self.min_length:
-                    raise self.format_exc(
-                        'Length of value should be larger than %s' %
-                        self.min_length)
-            else:
-                min, max = length
-                if value_len < min or value_len > max:
-                    raise self.format_exc(
-                        'Length should be >= %s and <= %s, but %s' %
-                        (min, max, value_len))
-        return value
 
     def _validate_choices(self, value):
         if value not in self.choices:
@@ -90,15 +63,12 @@ class Field(object):
         return value
 
     def validate(self, value):
-        # If null is allowed, skip other validates
-        if not value:
+        if is_empty_string(value) or value is None:
+            # If null is allowed, skip other validates
             if self.null:
                 return value
             else:
                 raise self.format_exc('empty value is not allowed')
-
-        if self.length:
-            self._validate_length(value)
 
         value = self._validate_type(value)
 

@@ -23,7 +23,62 @@ __all__ = [
 _pattern_class = type(re.compile(''))
 
 
-class RegexField(Field):
+###############################################################################
+# String fields                                                               #
+###############################################################################
+
+class StringField(Field):
+    def __init__(self, *args, **kwargs):
+        """
+        :params length: int or tuple, eg: 5, (1, 10), (8, 0)
+        """
+        length = kwargs.pop('length', None)
+        self.length = self.format_length(length)
+        super(StringField, self).__init__(*args, **kwargs)
+
+    @staticmethod
+    def format_length(length):
+        if length is None:
+            return length
+
+        if isinstance(length, int):
+            if length <= 0:
+                raise ValueError('length min should be > 0: {}'.format(length))
+        elif isinstance(length, tuple):
+            if len(length) != 2:
+                raise ValueError('length tuple length should be exactly 2: {}'.format(length))
+            if length[0] <= 0:
+                raise ValueError('length min should be > 0: {}'.format(length[0]))
+            if length[0] >= length[1]:
+                raise ValueError('lengh min should be < max: {}'.format(length))
+        else:
+            raise TypeError('length should be int or tuple: {}'.format(repr(length)))
+        return length
+
+    def validate(self, value):
+        value = super(StringField, self).validate(value)
+
+        # validate length
+        if self.length:
+            value = self._validate_length(value)
+
+    def _validate_length(self, value):
+        length = self.length
+        value_len = len(value)
+
+        if isinstance(length, int):
+            if value_len != length:
+                raise self.format_exc(
+                    'Length of value should be {}, but got {}'.format(length, value_len))
+        else:
+            min, max = length
+            if value_len < min or value_len > max:
+                raise self.format_exc(
+                    'Length should be >= {} and <= {}, but {}'.format(min, max, value_len))
+        return value
+
+
+class RegexField(StringField):
     def __init__(self, *args, **kwgs):
         # assume pattern is a raw string like r'\n'
         if 'pattern' in kwgs:
@@ -95,7 +150,15 @@ class URLField(RegexField):
     regex = URL_REGEX
 
 
-class IntegerField(Field):
+###############################################################################
+# Number fields                                                               #
+###############################################################################
+
+class NumberField(Field):
+    pass
+
+
+class IntegerField(NumberField):
     def __init__(self, *args, **kwargs):
         min = kwargs.pop('min', None)
         max = kwargs.pop('max', None)
@@ -128,10 +191,13 @@ class IntegerField(Field):
         return value
 
 
-# TODO
-class FloatField(Field):
+class FloatField(NumberField):
     pass
 
+
+###############################################################################
+# List fields                                                                 #
+###############################################################################
 
 class ListField(Field):
     with_choices = False
@@ -162,6 +228,10 @@ class ListField(Field):
         return value
 
 
+###############################################################################
+# Other type fields                                                           #
+###############################################################################
+
 class UUIDField(Field):
     def _validate_type(self, value):
         try:
@@ -170,7 +240,6 @@ class UUIDField(Field):
             raise self.format_exc('Invalid uuid string: %s' % e)
 
 
-# TODO
 class DateField(Field):
     def __init__(self, *args, **kwargs):
         datefmt = kwargs.pop('datefmt', None)
