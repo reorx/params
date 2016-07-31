@@ -121,24 +121,6 @@ class FloatField(Field):
     pass
 
 
-# TODO
-class DateField(Field):
-    def __init__(self, *args, **kwargs):
-        datefmt = kwargs.pop('datefmt', None)
-        assert datefmt, '`datefmt` argument should be passed for DateField'
-        self.datefmt = datefmt
-        super(DateField, self).__init__(*args, **kwargs)
-
-    def _validate_type(self, value):
-        try:
-            value = datetime.datetime.strptime(value, self.datefmt)
-        except ValueError:
-            raise self.format_exc(
-                'Could not convert %s to datetime object by format %s' %
-                (value, self.datefmt))
-        return value
-
-
 class ListField(Field):
     with_choices = False
 
@@ -174,3 +156,21 @@ class UUIDField(Field):
             return uuid.UUID(value)
         except ValueError, e:
             raise self.format_exc('Invalid uuid string: %s' % e)
+
+
+# TODO
+class DateField(Field):
+    def __init__(self, *args, **kwargs):
+        datefmt = kwargs.pop('datefmt', None)
+        assert datefmt, '`datefmt` argument should be passed for DateField'
+        self.datefmt = datefmt
+        super(DateField, self).__init__(*args, **kwargs)
+
+    def _validate_type(self, value):
+        try:
+            value = datetime.datetime.strptime(value, self.datefmt)
+        except ValueError:
+            raise self.format_exc(
+                'Could not convert %s to datetime object by format %s' %
+                (value, self.datefmt))
+        return value

@@ -7,10 +7,7 @@ build:
 	@python setup.py build
 
 test:
-	PYTHONPATH=. nosetests -w test/ -v
+	PYTHONPATH=. nosetests -v test/
 
 publish:
-	python setup.py sdist upload
-
-publish-all:
 	python setup.py sdist bdist_wheel upload
