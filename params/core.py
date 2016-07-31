@@ -1,7 +1,7 @@
 # coding: utf-8
 
 import copy
-from .utils import is_empty_string, unicode_copy
+from .utils import is_empty_string, unicode_copy, to_unicode, basestring_type
 
 __all__ = [
     'InvalidParams',
@@ -14,12 +14,19 @@ __all__ = [
 class InvalidParams(Exception):
     def __init__(self, errors):
         """errors is list contains key, value pairs"""
-        if not isinstance(errors, list):
-            raise TypeError('errors must be a list')
+        if isinstance(errors, list):
+            pass
+        elif isinstance(errors, basestring_type):
+            errors = to_unicode(errors)
+        else:
+            raise TypeError('errors must be list or str')
         self.errors = errors
 
     def __unicode__(self):
-        return u'Invalid params: ' + u'\n'.join(u'{}: {}'.format(k, e) for k, e in self.errors)
+        if isinstance(self.errors, basestring_type):
+            return self.errors
+        else:
+            return u'\n'.join(u'{}: {}'.format(k, e) for k, e in self.errors)
 
     def __str__(self):
         return unicode(self).encode('utf8')
