@@ -155,24 +155,42 @@ class URLField(RegexField):
 ###############################################################################
 
 class NumberField(Field):
-    pass
-
-
-class IntegerField(NumberField):
     def __init__(self, *args, **kwargs):
         min = kwargs.pop('min', None)
         max = kwargs.pop('max', None)
-        if min is not None:
-            assert isinstance(min, int)
-        if max is not None:
-            assert isinstance(max, int)
-        if min is not None and max is not None:
-            assert min <= max
+        if min is not None and not isinstance(min, self.value_type):
+            raise TypeError('min must be type {}, got {}'.format(self.value_type, type(min)))
+        if max is not None and not isinstance(max, self.value_type):
+            raise TypeError('max must be type {}, got {}'.format(self.value_type, type(max)))
+        if min is not None and max is not None and min >= max:
+            raise ValueError('min must < max, got {} ~ {}'.format(min, max))
 
         self.min = min
         self.max = max
 
-        super(IntegerField, self).__init__(*args, **kwargs)
+        super(NumberField, self).__init__(*args, **kwargs)
+
+    def validate(self, value):
+        value = super(NumberField, self).validate(value)
+
+        # validate min-max
+        value = self._validate_min_max(value)
+
+        return value
+
+    def _validate_min_max(self, value):
+        if self.min is not None:
+            if value < self.min:
+                raise self.format_exc('value is too small, min %s' % self.min)
+        if self.max is not None:
+            if value > self.max:
+                raise self.format_exc('vaule is too big, max %s' % self.max)
+
+        return value
+
+
+class IntegerField(NumberField):
+    value_type = int
 
     def _validate_type(self, value):
         try:
@@ -180,19 +198,19 @@ class IntegerField(NumberField):
         except (ValueError, TypeError):
             raise self.format_exc(
                 'could not convert value "%s" into int type' % value)
-
-        if self.min:
-            if value < self.min:
-                raise self.format_exc('value is too small, min %s' % self.min)
-        if self.max:
-            if value > self.max:
-                raise self.format_exc('vaule is too big, max %s' % self.max)
-
         return value
 
 
 class FloatField(NumberField):
-    pass
+    value_type = float
+
+    def _validate_type(self, value):
+        try:
+            value = float(value)
+        except (ValueError, TypeError):
+            raise self.format_exc(
+                'could not convert value "%s" into float type' % value)
+        return value
 
 
 ###############################################################################

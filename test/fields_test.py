@@ -116,11 +116,12 @@ def test_int():
         ({}, 'a', False),
         ({}, '0b', False),
         ({}, '1', True),
+        ({}, 10, True),
         ({'min': 3}, '2', False),
         ({'max': 99}, '100', False),
-        ({'min': 1024, 'max': 1024}, '1023', False),
-        ({'min': 1024, 'max': 1024}, '1024', True),
-        ({'min': 1024, 'max': 1024}, '1025', False),
+        ({'min': 0, 'max': 10}, '-1', False),
+        ({'min': 0, 'max': 10}, '0', True),
+        ({'min': 0, 'max': 10}, '11', False),
     ]
     for kwargs, v, iseq in pairs:
         yield check_int, kwargs, v, iseq
@@ -131,6 +132,7 @@ def check_int(kwargs, v, iseq):
     if iseq:
         f.validate(v)
     else:
+        print v, f.min, f.max
         assert_raises(ValueError, f.validate, v)
 
 

@@ -28,6 +28,7 @@ class InvalidParams(Exception):
 class Field(object):
     name = None
     with_choices = True
+    value_type = None
 
     def __init__(
             self, description=None,
