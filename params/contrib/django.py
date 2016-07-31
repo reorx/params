@@ -34,6 +34,10 @@ def use_params(df, class_view=False, json=False):
     return decorator
 
 
+def use_params_class_view(df, json=False):
+    return use_params(df, class_view=True, json=json)
+
+
 def get_params(params_cls, request, json=False):
     http_method = _check_method(request.method, json)
     if json:

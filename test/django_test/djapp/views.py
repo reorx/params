@@ -3,7 +3,7 @@
 from django.http import HttpResponse
 from django.views.generic import View
 import params
-from params.contrib.django import use_params
+from params.contrib.django import use_params, use_params_class_view
 
 
 def index(request):
@@ -19,9 +19,9 @@ def funcview(request):
 
 
 class ClassView(View):
-    @use_params({
+    @use_params_class_view({
         'a': params.Field(required=True),
-    }, class_view=True)
+    })
     def get(self, request):
         assert request.params.a == '1'
         return HttpResponse(str(request.params))
