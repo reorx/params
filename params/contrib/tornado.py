@@ -5,12 +5,12 @@ from __future__ import absolute_import
 
 from functools import wraps
 from ..utils import json_decode, to_unicode
-from ..core import define_params, InvalidParams
-from .utils import check_method
+from ..core import InvalidParams
+from .base import get_params_cls, check_method
 
 
 def use_params(df, is_json=False, raise_if_invalid=True):
-    params_cls = define_params(df)
+    params_cls = get_params_cls(df)
 
     def decorator(view_method):
         http_method = check_method(view_method.__name__.upper(), is_json)
