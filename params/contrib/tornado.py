@@ -56,24 +56,3 @@ def get_raw(hdr, http_method, is_json):
             else:
                 raw[k] = to_unicode(v[0])
     return raw
-
-
-def simple_params(datatype='form'):
-    assert datatype in ('form', 'json')
-
-    def decorator(method):
-        @wraps(method)
-        def wrapper(hdr, *args, **kwgs):
-            if 'json' == datatype:
-                try:
-                    params = json_decode(hdr.request.body)
-                except Exception, e:
-                    raise InvalidParams('JSON decode failed: %s' % e)
-            else:
-                params = dict((k, v[0])
-                              for k, v in hdr.request.arguments.iteritems())
-
-            hdr.params = params
-            return method(hdr, *args, **kwgs)
-        return wrapper
-    return decorator

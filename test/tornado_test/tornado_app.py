@@ -8,7 +8,7 @@ from tornado.web import RequestHandler, Application
 from tornado.options import define, options
 from tornado.log import enable_pretty_logging
 import params
-from params.contrib.tornado import use_params
+from params.contrib.tornado import use_params, use_raw
 
 
 class BaseHandler(RequestHandler):
@@ -20,6 +20,14 @@ class BaseHandler(RequestHandler):
             if not self._finished:
                 self.finish(*e.args)
             return
+
+        ## add
+        if isinstance(e, params.InvalidParams):
+            self.set_status(400)
+            self.finish({'error': str(e)})
+            return
+        ## end
+
         try:
             self.log_exception(*sys.exc_info())
         except Exception:
@@ -37,9 +45,6 @@ class BaseHandler(RequestHandler):
                 self.send_error(500, exc_info=sys.exc_info())
             else:
                 self.send_error(e.status_code, exc_info=sys.exc_info())
-        elif isinstance(e, params.InvalidParams):
-            self.set_status(400)
-            self.finish({'error': str(e)})
         else:
             self.send_error(500, exc_info=sys.exc_info())
 
@@ -91,6 +96,24 @@ class PostJsonHandler(BaseHandler):
         return self.write(str(self.params))
 
 
+class RawHandler(BaseHandler):
+    @use_raw()
+    def post(self):
+        print 'params', self.params
+        if 'a' not in self.params:
+            raise params.InvalidParams('no a')
+        return self.write(str(self.params))
+
+
+class RawJsonHandler(BaseHandler):
+    @use_raw(is_json=True)
+    def post(self):
+        print 'params', self.params
+        if 'a' not in self.params:
+            raise params.InvalidParams('no a')
+        return self.write(str(self.params))
+
+
 def get_app():
     enable_pretty_logging()
     application = Application([
@@ -98,6 +121,8 @@ def get_app():
         (r'/get', GetHandler),
         (r'/post', PostHandler),
         (r'/post/json', PostJsonHandler),
+        (r'/raw', RawHandler),
+        (r'/raw/json', RawJsonHandler),
     ])
     return application
 
