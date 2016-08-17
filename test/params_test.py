@@ -2,6 +2,10 @@
 
 import params
 import uuid
+from nose.tools import assert_raises
+
+
+userdb = ['asuka', 'lilith', 'ayanami']
 
 
 class UserParams(params.ParamSet):
@@ -16,6 +20,21 @@ class UserParams(params.ParamSet):
     age = params.IntegerField(
         'age should be a 10~30 int',
         min=10, max=30)
+
+    def validate_name(self, value):
+        if value not in userdb:
+            raise ValueError('user not in db')
+        return value
+
+    def validate_name_with_email(self):
+        """name must be in email"""
+        name = self.data.get('name')
+        email = self.data.get('email')
+        if not name or not email:
+            return
+
+        if name not in email:
+            raise ValueError('name must be in email')
 
 
 def guuid():
@@ -32,19 +51,19 @@ def test_param():
         ({
             'id': '123',  # x
             'name': 'lilith',
-            'email': 'l@eva.com',
+            'email': 'lilith001@eva.com',
             'age': 10,
         }, 1),
         ({
             'id': 'a3',  # x
             'name': 'ayanami',
-            'email': 'rei@nerv.com',
+            'email': 'rei@nerv.com',  # x
             'age': 'unknown',  # x
-        }, 2),
+        }, 3),
         ({
             'id': 'b3',  # x
-            'name': 'shinjigivebackmyayanami',  # x
-            'email': 'yikali@nerv',  # x
+            'name': 'hikali',  # x
+            'email': 'hikali@nerv',  # x
             'age': 30,
         }, 3),
         ({
@@ -64,3 +83,34 @@ def check_param(data, error_num):
     params = UserParams(data, raise_if_invalid=False)
     print error_num, len(params.errors), params.errors
     assert error_num == len(params.errors)
+
+
+def test_wrong_validate_function():
+    class DemoParams(params.ParamSet):
+        a = params.Field(null=False)
+
+        def validate_a(self, value):
+            pass
+
+    DemoParams({})
+
+    with assert_raises(AssertionError):
+        DemoParams({'a': 1})
+
+
+def test_keys():
+    class DemoParams(params.ParamSet):
+        a_b = params.Field(key='a-b')
+
+    assert DemoParams.keys() == ['a-b']
+
+
+def test_setattr():
+    class DemoParams(params.ParamSet):
+        a = params.Field()
+
+    p = DemoParams({})
+    with assert_raises(AttributeError):
+        p.a = 1
+
+    p.whatever = 2

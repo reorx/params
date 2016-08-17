@@ -2,6 +2,9 @@
 
 import tornado_app
 from tornado.testing import AsyncHTTPTestCase
+from nose.tools import assert_raises
+import params
+from params.contrib.tornado import use_params, use_raw
 
 
 app_log = 'tornado.application'
@@ -88,3 +91,15 @@ class ParamsTest(AsyncHTTPTestCase):
         resp = self.fetch(url, method='POST', body='{"a": "n"}')
         print 'resp 3', resp.body
         self.assertEqual(resp.code, 200)
+
+
+def test_invalid_http_method():
+    from tornado.web import RequestHandler
+
+    with assert_raises(ValueError):
+        class DemoHandler(RequestHandler):
+            @use_params({
+                'a': params.Field(),
+            })
+            def wtf(self):
+                pass

@@ -69,10 +69,11 @@ class GetHandler(BaseHandler):
 
 
 class PostHandler(BaseHandler):
-    @use_params({
-        'a': params.Field(required=True),
-        'b': params.Field(),
-    })
+    class PostParams(params.ParamSet):
+        a = params.Field(required=True)
+        b = params.Field()
+
+    @use_params(PostParams)
     def post(self):
         print 'params', self.params
         if self.params.a != '1':
