@@ -30,17 +30,55 @@ class BaseHandler(_BaseHandler):
         })
 
 
+mac_field = params.RegexField(
+    description='not a valid mac address',
+    pattern=r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$')
+
+
 @app.route('/register')
 class RegisterHandler(BaseHandler):
     @use_params({
         'hostname': params.StringField(required=True),
         'ip_addr': IPField(required=True),
-        'mac_addr': params.RegexField(pattern=r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$')
+        'mac_addr': mac_field.spawn(required=True),
     })
     def post(self):
         print self.params.hostname
         print self.params.ip_addr
         print self.params.mac_addr
+        self.write_json(self.params.data)
+
+
+@app.route('/resolves')
+class ResolvesHandler(BaseHandler):
+    class PostParams(params.ParamSet):
+        hostname = params.StringField(required=True)
+        ip_addr = IPField(required=True)
+
+        def validate_hostname(self, value):
+            try:
+                ipaddress.ip_address(value)
+            except ValueError:
+                return value
+            else:
+                raise ValueError('hostname could not be an ip address')
+
+    @use_params(PostParams)
+    def post(self):
+        print self.params.hostname
+        print self.params.ip_addr
+        self.write_json(self.params.data)
+
+
+@app.route('/macs/([\w:-]+)')
+class MacsItemHandler(BaseHandler):
+    def get(self, mac):
+        try:
+            mac_field.validate(mac)
+        except ValueError as e:
+            raise params.InvalidParams('invalid mac: {}'.format(e))
+        print mac
+        self.write(mac)
 
 
 if __name__ == '__main__':
