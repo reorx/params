@@ -4,20 +4,75 @@ from nose.tools import eq_ as equal
 from nose.tools import assert_raises
 import uuid
 from params.fields import (
+    Field,
+    StringField,
     RegexField,
     WordField,
     EmailField,
     URLField,
     IntegerField,
-    #FloatField,
+    FloatField,
     ListField,
     UUIDField,
     #DateField,
 )
 
 
+value_error_ctx = assert_raises(ValueError)
+type_error_ctx = assert_raises(TypeError)
+
+def test_spawn():
+    desc = 'foo'
+    f = Field(description=desc)
+    f1 = f.spawn(required=True)
+
+    assert f.required is False
+    assert f1.required is True
+    assert f.description == f1.description
+
+
+def test_string():
+
+    f = StringField()
+    f.validate('')
+
+    with value_error_ctx:
+        f.validate(123)
+
+    with value_error_ctx:
+        StringField(length=-1)
+
+    f = StringField(length=1)
+    f.validate('a')
+    with value_error_ctx:
+        f.validate('')
+
+    with type_error_ctx:
+        StringField(length=1.1)
+
+    with value_error_ctx:
+        StringField(length=(1, ))
+
+    with value_error_ctx:
+        StringField(length=(1, 2, 3))
+
+    with value_error_ctx:
+        StringField(length=(2, 1))
+
+    with value_error_ctx:
+        StringField(length=(-1, 2))
+
+    f = StringField(length=(1, 2))
+    f.validate('a')
+    f.validate('aa')
+    with value_error_ctx:
+        f.validate('aaa')
+
+
 def test_regex():
     pairs = [
+        (r'^\w+', 123, False),
+
         (r'^\w+', 'hell*', True),
         (r'^\w+', '*ello', False),
 
@@ -141,6 +196,20 @@ def check_int(kwargs, v, iseq):
     else:
         print v, f.min, f.max
         assert_raises(ValueError, f.validate, v)
+
+
+def test_float():
+    f = FloatField()
+    # with value_error_ctx:
+    #     f.validate(1)
+
+    f.validate(1.1)
+
+    with type_error_ctx:
+        FloatField(min=1)
+
+    with type_error_ctx:
+        FloatField(max=2)
 
 
 def test_simple_list():

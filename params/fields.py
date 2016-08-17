@@ -5,6 +5,7 @@ import uuid
 import datetime
 
 from .core import Field
+from .utils import basestring_type
 
 __all__ = [
     'StringField',
@@ -66,6 +67,11 @@ class StringField(Field):
 
         return value
 
+    def _validate_type(self, value):
+        if not isinstance(value, basestring_type):
+            raise ValueError('not a string type')
+        return value
+
     def _validate_length(self, value):
         length = self.length
         value_len = len(value)
@@ -95,17 +101,10 @@ class RegexField(StringField):
 
         super(RegexField, self).__init__(*args, **kwgs)
 
-    def _validate_type(self, value):
-        # Equate the type of regex pattern and the checking value
-        pattern_type = type(self.regex.pattern)
+    def validate(self, value):
+        value = super(RegexField, self).validate(value)
+
         c_value = value
-        if not isinstance(value, pattern_type):
-            try:
-                c_value = pattern_type(value)
-            except Exception, e:
-                raise self.format_exc(
-                    'value could not be converted into type "%s"'
-                    'of regex pattern, error: %s' % (pattern_type, e))
         if not self.regex.search(c_value):
             raise self.format_exc(
                 'regex pattern (%s, %s) is not match with value "%s"' %
@@ -121,7 +120,7 @@ class WordField(RegexField):
     ValueError: should not contain punctuations
     """
 
-    regex = re.compile(r'^[\w]+$')
+    regex = re.compile(r'^[\w]*$')
 
 
 # take from Django

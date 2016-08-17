@@ -134,7 +134,7 @@ class ParamSet(object):
 
         self.validate(raise_if_invalid=raise_if_invalid)
 
-    def validate(self, raise_if_invalid=False):
+    def validate(self, raise_if_invalid=True):
         for name, field in self.__class__._fields.iteritems():
             key = field.key
             if key in self._raw_data:
@@ -153,6 +153,8 @@ class ParamSet(object):
                 # elif field.default is not None:
                 #     self.data[key] = field.default
 
+        # first loop, validate each field independently
+        non_field_validate_funcs = []
         for attr_name in dir(self):
             if attr_name.startswith('validate_'):
                 field_name = attr_name[len('validate_'):]
@@ -172,21 +174,18 @@ class ParamSet(object):
                                 'None, which is not allowed in the mechanism.')
                         self.data[key] = value
                 else:
-                    try:
-                        getattr(self, attr_name)()
-                    except ValueError, e:
-                        self.errors.append(e)
+                    non_field_validate_funcs.append(getattr(self, attr_name))
+
+        # second loop, validate logic functions
+        for func in non_field_validate_funcs:
+            try:
+                func()
+            except ValueError, e:
+                self.errors.append(e)
+
         if raise_if_invalid:
             if self.errors:
                 raise InvalidParams(self.errors)
-
-    def kwargs(self, *args):
-        d = {}
-        for k in args:
-            v = getattr(self, k)
-            if v is not None:
-                d[k] = v
-        return d
 
     def has(self, name):
         return name in self.data
