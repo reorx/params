@@ -16,6 +16,8 @@ else:
     unicode_type = unicode  # noqa
     basestring_type = basestring  # noqa
 
+HTTP_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS', 'CONNECT', 'TRACE']
+
 
 _TO_UNICODE_TYPES = (unicode_type, type(None))
 

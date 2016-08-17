@@ -2,22 +2,25 @@
 # coding: utf-8
 
 from __future__ import absolute_import
-import json as libjson
+
+import json
 from functools import wraps
 from ..core import define_params, InvalidParams
+from .utils import check_method
 
 
-def use_params(df, class_view=False, json=False):
+def use_params(df, class_view=False, is_json=False, raise_if_invalid=True):
     params_cls = define_params(df)
 
     if class_view:
         def decorator(view_method):
             # For class view, we can check http method before view method is called
-            _check_method(view_method.__name__.upper(), json)
+            check_method(view_method.__name__.upper(), is_json)
 
             @wraps(view_method)
             def func(self, request, *args, **kwargs):
-                request.params = get_params(params_cls, request, json)
+                raw = get_raw(request, is_json)
+                request.params = params_cls(raw, raise_if_invalid=raise_if_invalid)
                 return view_method(self, request, *args, **kwargs)
 
             return func
@@ -26,7 +29,8 @@ def use_params(df, class_view=False, json=False):
 
             @wraps(view_func)
             def func(request, *args, **kwargs):
-                request.params = get_params(params_cls, request, json)
+                raw = get_raw(request, is_json)
+                request.params = params_cls(raw, raise_if_invalid=raise_if_invalid)
                 return view_func(request, *args, **kwargs)
 
             return func
@@ -34,29 +38,22 @@ def use_params(df, class_view=False, json=False):
     return decorator
 
 
-def use_params_class_view(df, json=False):
-    return use_params(df, class_view=True, json=json)
+def use_params_class_view(df, is_json=False):
+    return use_params(df, class_view=True, is_json=is_json)
 
 
-def get_params(params_cls, request, json=False):
-    http_method = _check_method(request.method, json)
-    if json:
+def get_raw(request, is_json=False):
+    http_method = check_method(request.method, is_json)
+    if is_json:
         raw = _get_json(request)
     else:
         raw = getattr(request, http_method)
-    params = params_cls(raw)
-    return params
+    return raw
 
 
 def _get_json(request):
     try:
-        raw = libjson.loads(request.body)
+        raw = json.loads(request.body)
     except Exception as e:
         raise InvalidParams('Could not parse body as json: {}'.format(e))
     return raw
-
-
-def _check_method(http_method, json):
-    if http_method == 'GET' and json:
-        raise ValueError('json=True could only be used on method other than GET')
-    return http_method

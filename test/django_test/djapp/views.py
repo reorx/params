@@ -29,7 +29,7 @@ class ClassView(View):
 
 @use_params({
     'a': params.Field(required=True),
-}, json=True)
+}, is_json=True)
 def jsonview(request):
     assert request.params.a == 1
     return HttpResponse(str(request.params))
