@@ -58,7 +58,7 @@ class Field(object):
     #     raise NotImplementedError
 
     def format_exc(self, error_message=None):
-        return ValueError(error_message or self.description)
+        return ValueError(self.description or error_message)
 
     def _validate_choices(self, value):
         if value not in self.choices:
