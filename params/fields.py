@@ -17,7 +17,7 @@ __all__ = [
     'FloatField',
     'ListField',
     'UUIDStringField',
-    'DateField',
+    'DatetimeField',
 ]
 
 
@@ -201,25 +201,9 @@ class BaseNumberField(Field):
 class IntegerField(BaseNumberField):
     value_type = int
 
-    def _convert_type(self, value):
-        try:
-            value = int(value)
-        except (ValueError, TypeError):
-            raise self.format_exc(
-                'could not convert value "%s" into int type' % value)
-        return value
-
 
 class FloatField(BaseNumberField):
     value_type = float
-
-    def _convert_type(self, value):
-        try:
-            value = float(value)
-        except (ValueError, TypeError):
-            raise self.format_exc(
-                'could not convert value "%s" into float type' % value)
-        return value
 
 
 ###############################################################################
@@ -286,15 +270,15 @@ class UUIDStringField(StringField):
             raise self.format_exc('Invalid uuid string: %s' % e)
 
 
-class DateField(Field):
+class DatetimeField(Field):
     value_type = datetime.datetime
 
     def __init__(self, *args, **kwargs):
         format = kwargs.pop('format', None)
         if not format:
-            raise KeyError('`format` argument is required for DateField')
+            raise KeyError('`format` argument is required for DatetimeField')
         self.format = format
-        super(DateField, self).__init__(*args, **kwargs)
+        super(DatetimeField, self).__init__(*args, **kwargs)
 
     def _convert_type(self, value):
         try:

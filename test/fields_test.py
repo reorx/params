@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import datetime
 from nose.tools import eq_ as equal
 from nose.tools import assert_raises
 from params.fields import (
@@ -13,7 +14,7 @@ from params.fields import (
     FloatField,
     ListField,
     UUIDStringField,
-    #DateField,
+    DatetimeField,
 )
 
 
@@ -267,3 +268,27 @@ def check_uuid(v, iseq):
     else:
         with value_error_ctx:
             f.validate(v)
+
+
+def test_datetime():
+    with assert_raises(KeyError):
+        f = DatetimeField()
+
+    f = DatetimeField(format='%Y-%m-%d')
+
+    with value_error_ctx:
+        f.validate('2011-11-11')
+
+    f.validate(datetime.datetime.now())
+
+
+def test_datetime_convert():
+    f = DatetimeField(format='%Y-%m-%d')
+
+    f.validate('2011-11-11', convert=True)
+    with value_error_ctx:
+        f.validate('2011-11', convert=True)
+    with value_error_ctx:
+        f.validate('2011-11-11 10:10', convert=True)
+    with value_error_ctx:
+        f.validate('2011-13-11', convert=True)
