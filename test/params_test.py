@@ -45,13 +45,13 @@ def test_param():
     data_pairs = [
         ({
             'id': guuid(),
-            'name': 'asuka',
+            'name': u'asuka',
             'email': 'asuka@nerv.com',
         }, 0),
         ({
             'id': '123',  # x
             'name': 'lilith',
-            'email': 'lilith001@eva.com',
+            'email': u'lilith001@eva.com',
             'age': 10,
         }, 1),
         ({
