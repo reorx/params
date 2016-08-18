@@ -13,11 +13,10 @@ __all__ = [
     'WordField',
     'EmailField',
     'URLField',
-    'NumberField',
     'IntegerField',
     'FloatField',
     'ListField',
-    'UUIDField',
+    'UUIDStringField',
     'DateField',
 ]
 
@@ -31,6 +30,8 @@ _pattern_class = type(re.compile(''))
 ###############################################################################
 
 class StringField(Field):
+    value_type = basestring_type
+
     def __init__(self, *args, **kwargs):
         """
         :params length: int or tuple, eg: 5, (1, 10), (8, 0)
@@ -58,8 +59,8 @@ class StringField(Field):
             raise TypeError('length should be int or tuple: {}'.format(repr(length)))
         return length
 
-    def validate(self, value):
-        value = super(StringField, self).validate(value)
+    def validate(self, value, **kwargs):
+        value = super(StringField, self).validate(value, **kwargs)
 
         # validate length
         if self.length:
@@ -67,10 +68,15 @@ class StringField(Field):
 
         return value
 
-    def _validate_type(self, value):
-        if not isinstance(value, basestring_type):
-            raise ValueError('not a string type')
-        return value
+    def _convert_type(self, value):
+        # because basestring could not be used to convert value, this method is overrided
+        if isinstance(value, str):
+            try:
+                return value.decode('utf8')
+            except UnicodeDecodeError:
+                raise ValueError('could not convert {} to unicode'.format(repr(value)))
+        else:
+            return unicode(value)
 
     def _validate_length(self, value):
         length = self.length
@@ -101,8 +107,8 @@ class RegexField(StringField):
 
         super(RegexField, self).__init__(*args, **kwgs)
 
-    def validate(self, value):
-        value = super(RegexField, self).validate(value)
+    def validate(self, value, **kwargs):
+        value = super(RegexField, self).validate(value, **kwargs)
 
         c_value = value
         if not self.regex.search(c_value):
@@ -119,11 +125,10 @@ class WordField(RegexField):
     >>> v.validate(s)
     ValueError: should not contain punctuations
     """
-
     regex = re.compile(r'^[\w]*$')
 
 
-# take from Django
+# taken from Django
 EMAIL_REGEX = re.compile(
     # dot-atom
     r'(^[-!#$%&\'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&\'*+/=?^_`{}|~0-9A-Z]+)*'
@@ -157,7 +162,8 @@ class URLField(RegexField):
 # Number fields                                                               #
 ###############################################################################
 
-class NumberField(Field):
+class BaseNumberField(Field):
+    """This class is only used as base class"""
     def __init__(self, *args, **kwargs):
         min = kwargs.pop('min', None)
         max = kwargs.pop('max', None)
@@ -171,10 +177,10 @@ class NumberField(Field):
         self.min = min
         self.max = max
 
-        super(NumberField, self).__init__(*args, **kwargs)
+        super(BaseNumberField, self).__init__(*args, **kwargs)
 
-    def validate(self, value):
-        value = super(NumberField, self).validate(value)
+    def validate(self, value, **kwargs):
+        value = super(BaseNumberField, self).validate(value, **kwargs)
 
         # validate min-max
         value = self._validate_min_max(value)
@@ -192,10 +198,10 @@ class NumberField(Field):
         return value
 
 
-class IntegerField(NumberField):
+class IntegerField(BaseNumberField):
     value_type = int
 
-    def _validate_type(self, value):
+    def _convert_type(self, value):
         try:
             value = int(value)
         except (ValueError, TypeError):
@@ -204,10 +210,10 @@ class IntegerField(NumberField):
         return value
 
 
-class FloatField(NumberField):
+class FloatField(BaseNumberField):
     value_type = float
 
-    def _validate_type(self, value):
+    def _convert_type(self, value):
         try:
             value = float(value)
         except (ValueError, TypeError):
@@ -221,23 +227,44 @@ class FloatField(NumberField):
 ###############################################################################
 
 class ListField(Field):
-    with_choices = False
+    value_type = list
 
     def __init__(self, *args, **kwargs):
         self.item_field = kwargs.pop('item_field', None)
         super(ListField, self).__init__(*args, **kwargs)
 
-    def _validate_type(self, value):
+    def _convert_type(self, value):
         if not isinstance(value, list):
-            # raise self.format_exc('Not a list')
             value = [value]
 
         if self.item_field:
             formatted_value = []
             for i in value:
-                formatted_value.append(self.item_field.validate(i))
+                try:
+                    item_value = self.item_field.validate(i, convert=True)
+                except ValueError as e:
+                    raise self.format_exc(
+                        '{} in list could not be convert to type {}: {}'.format(i, self.item_field, e))
+                else:
+                    formatted_value.append(item_value)
+
             value = formatted_value
 
+        return value
+
+    def _validate_type(self, value):
+        if not isinstance(value, list):
+            raise self.format_exc('Not a list')
+
+        if self.item_field:
+            for i in value:
+                try:
+                    self.item_field.validate(i)
+                except ValueError as e:
+                    raise self.format_exc(
+                        '{} in list is not of type {}: {}'.format(i, self.item_field, e))
+
+    def _validate_choices(self, value):
         bad_values = []
         if self.choices:
             for i in value:
@@ -246,33 +273,35 @@ class ListField(Field):
         if bad_values:
             raise self.format_exc('%s is/are not allowed' % bad_values)
 
-        return value
-
 
 ###############################################################################
 # Other type fields                                                           #
 ###############################################################################
 
-class UUIDField(Field):
+class UUIDStringField(StringField):
     def _validate_type(self, value):
         try:
-            return uuid.UUID(value)
+            uuid.UUID(value)
         except ValueError, e:
             raise self.format_exc('Invalid uuid string: %s' % e)
 
 
 class DateField(Field):
+    value_type = datetime.datetime
+
     def __init__(self, *args, **kwargs):
-        datefmt = kwargs.pop('datefmt', None)
-        assert datefmt, '`datefmt` argument should be passed for DateField'
-        self.datefmt = datefmt
+        format = kwargs.pop('format', None)
+        if not format:
+            raise KeyError('`format` argument is required for DateField')
+        self.format = format
         super(DateField, self).__init__(*args, **kwargs)
 
-    def _validate_type(self, value):
+    def _convert_type(self, value):
         try:
-            value = datetime.datetime.strptime(value, self.datefmt)
+            value = datetime.datetime.strptime(value, self.format)
         except ValueError:
             raise self.format_exc(
-                'Could not convert %s to datetime object by format %s' %
-                (value, self.datefmt))
+                'Could not convert {} to datetime object by format {}'.format(
+                    value, self.format)
+            )
         return value

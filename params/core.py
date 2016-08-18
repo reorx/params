@@ -34,7 +34,6 @@ class InvalidParams(Exception):
 
 class Field(object):
     name = None
-    with_choices = True
     value_type = None
 
     def __init__(
@@ -64,13 +63,43 @@ class Field(object):
         if value not in self.choices:
             raise self.format_exc(
                 'value "%s" is not one of %s' % (value, self.choices))
-        return value
 
     def _validate_type(self, value):
         """Override this method to implement type specified validation"""
-        return value
+        if self.value_type is None:
+            return
 
-    def validate(self, value):
+        if not isinstance(value, self.value_type):
+            raise ValueError('{} is not of type {}'.format(value, self.value_type))
+
+    def _convert_type(self, value):
+        """Override this method to implement type specified conversion"""
+        if self.value_type is None:
+            return value
+
+        if isinstance(self.value_type, tuple):
+            types = self.value_type
+        else:
+            types = (self.value_type, )
+
+        success = False
+        error = ''
+        conv_value = value
+        for typ in types:
+            try:
+                conv_value = typ(value)
+            except Exception as e:
+                error = '{}; {}'.format(e, error)
+            else:
+                success = True
+                break
+
+        if success:
+            return conv_value
+        else:
+            raise ValueError('could not convert {} to type {}: {}'.format(value, self.value_type, error))
+
+    def validate(self, value, convert=False):
         if is_empty_string(value) or value is None:
             # If null is allowed, skip other validates
             if self.null:
@@ -78,10 +107,12 @@ class Field(object):
             else:
                 raise self.format_exc('empty value is not allowed')
 
-        value = self._validate_type(value)
+        if convert:
+            value = self._convert_type(value)
+        self._validate_type(value)
 
         # Validate choices after type, so that the value has been converted
-        if self.with_choices and self.choices:
+        if self.choices:
             self._validate_choices(value)
 
         return value
@@ -123,14 +154,17 @@ class ParamSetMeta(type):
 class ParamSet(object):
     __metaclass__ = ParamSetMeta
 
+    convert = False
+
     @classmethod
     def keys(cls):
         return [i.key for i in cls._fields.itervalues()]
 
-    def __init__(self, raw_data, raise_if_invalid=True):
+    def __init__(self, raw_data, raise_if_invalid=True, convert=False):
         self._raw_data = unicode_copy(raw_data)
         self.data = {}
         self.errors = []
+        self.convert = convert
 
         self.validate(raise_if_invalid=raise_if_invalid)
 
@@ -142,7 +176,7 @@ class ParamSet(object):
                 value = self._raw_data[key]
 
                 try:
-                    value = field.validate(value)
+                    value = field.validate(value, convert=self.convert)
                 except ValueError, e:
                     self.errors.append((key, e))
                 else:

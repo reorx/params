@@ -2,7 +2,6 @@
 
 from nose.tools import eq_ as equal
 from nose.tools import assert_raises
-import uuid
 from params.fields import (
     Field,
     StringField,
@@ -13,13 +12,14 @@ from params.fields import (
     IntegerField,
     FloatField,
     ListField,
-    UUIDField,
+    UUIDStringField,
     #DateField,
 )
 
 
 value_error_ctx = assert_raises(ValueError)
 type_error_ctx = assert_raises(TypeError)
+
 
 def test_spawn():
     desc = 'foo'
@@ -93,7 +93,7 @@ def check_regex(pattern, match, result):
     if result:
         equal(match, field.validate(match))
     else:
-        with assert_raises(ValueError):
+        with value_error_ctx:
             field.validate(match)
 
 
@@ -106,9 +106,9 @@ def test_words():
     s = 'goodstr_with_underscore'
     equal(s, f0.validate(s))
 
-    with assert_raises(ValueError):
+    with value_error_ctx:
         f0.validate('should not contain space')
-    with assert_raises(ValueError):
+    with value_error_ctx:
         f0.validate('miscsymbols*(*^&')
 
     f1 = WordField(length=(4, 8))
@@ -117,13 +117,13 @@ def test_words():
     s = 'fourfour'
     equal(s, f1.validate(s))
 
-    with assert_raises(ValueError):
+    with value_error_ctx:
         f1.validate('s')
-    with assert_raises(ValueError):
+    with value_error_ctx:
         f1.validate('longggggg')
 
     f2 = WordField(null=False)
-    with assert_raises(ValueError):
+    with value_error_ctx:
         f2.validate('')
 
 
@@ -177,25 +177,35 @@ def test_int():
     pairs = [
         ({}, 'a', False),
         ({}, '0b', False),
-        ({}, '1', True),
+        ({}, '1', False),
         ({}, 10, True),
-        ({'min': 3}, '2', False),
-        ({'max': 99}, '100', False),
-        ({'min': 0, 'max': 10}, '-1', False),
-        ({'min': 0, 'max': 10}, '0', True),
-        ({'min': 0, 'max': 10}, '11', False),
+        ({'min': 3}, 2, False),
+        ({'max': 99}, 100, False),
+        ({'min': 0, 'max': 10}, -1, False),
+        ({'min': 0, 'max': 10}, 0, True),
+        ({'min': 0, 'max': 10}, 11, False),
     ]
     for kwargs, v, iseq in pairs:
         yield check_int, kwargs, v, iseq
 
 
-def check_int(kwargs, v, iseq):
+def test_int_convert():
+    pairs = [
+        ({}, 'a', False),
+        ({}, '1', True),
+        ({}, '1.1', False),
+    ]
+    for kwargs, v, iseq in pairs:
+        yield check_int, kwargs, v, iseq, True
+
+
+def check_int(kwargs, v, iseq, convert=False):
     f = IntegerField(**kwargs)
     if iseq:
-        equal(int(v), f.validate(v))
+        equal(int(v), f.validate(v, convert=convert))
     else:
         print v, f.min, f.max
-        assert_raises(ValueError, f.validate, v)
+        assert_raises(ValueError, f.validate, v, convert=convert)
 
 
 def test_float():
@@ -220,23 +230,23 @@ def test_simple_list():
     l = ['a', 'b', 'c']
     equal(l, list_field.validate(l))
 
-    with assert_raises(ValueError):
+    with value_error_ctx:
         list_field.validate(['b', 'c', 'd'])
-    with assert_raises(ValueError):
+    with value_error_ctx:
         list_field.validate(['z', 'a', 'b'])
 
 
-def test_type_list():
+def test_type_list_convert():
     list_field = ListField(item_field=IntegerField(min=1, max=9), choices=[1, 2, 3])
 
-    equal([1, 2, 3], list_field.validate(['1', '2', '3']))
+    equal([1, 2, 3], list_field.validate(['1', '2', '3'], convert=True))
 
-    with assert_raises(ValueError):
-        list_field.validate(['0', '1', '2'])
-    with assert_raises(ValueError):
-        list_field.validate(['1', '2', '3', '4'])
-    with assert_raises(ValueError):
-        list_field.validate(['a', '2', '3'])
+    with value_error_ctx:
+        list_field.validate(['0', '1', '2'], convert=True)
+    with value_error_ctx:
+        list_field.validate(['1', '2', '3', '4'], convert=True)
+    with value_error_ctx:
+        list_field.validate(['a', '2', '3'], convert=True)
 
 
 def test_uuid():
@@ -251,9 +261,9 @@ def test_uuid():
 
 
 def check_uuid(v, iseq):
-    f = UUIDField()
+    f = UUIDStringField()
     if iseq:
-        equal(uuid.UUID(v), f.validate(v))
+        equal(v, f.validate(v))
     else:
-        with assert_raises(ValueError):
+        with value_error_ctx:
             f.validate(v)
