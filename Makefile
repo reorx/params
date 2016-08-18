@@ -1,5 +1,7 @@
 .PHONY: clean build test
 
+all: build
+
 clean:
 	rm -rf build dist *.egg-info
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 # Use semantic versioning: MAJOR.MINOR.PATCH
-version = '2.0.1'
+version = '2.1.0'
 
 
 def get_requires():
@@ -34,11 +34,8 @@ setup(
     description='General purpose parameter validator for web development',
     url='https://github.com/reorx/params',
     long_description=get_long_description(),
-    packages=[
-        'params',
-    ],
     # Or use (make sure find_packages is imported from setuptools):
-    # packages=find_packages()
+    packages=find_packages(),
     # Or if it's a single file package
     install_requires=get_requires(),
     # package_data={}
