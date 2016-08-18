@@ -59,41 +59,41 @@ class HomeHandler(BaseHandler):
 
 class GetHandler(BaseHandler):
     @use_params({
-        'a': params.Field(required=True),
+        'a': params.IntegerField(required=True),
     })
     def get(self):
         print 'params', self.params
-        if self.params.a != '1':
+        if self.params.a != 1:
             raise params.InvalidParams('a != 1')
         return self.write(str(self.params))
 
 
 class PostHandler(BaseHandler):
     class PostParams(params.ParamSet):
-        a = params.Field(required=True)
+        a = params.IntegerField(required=True)
         b = params.Field()
 
     @use_params(PostParams)
     def post(self):
         print 'params', self.params
-        if self.params.a != '1':
+        if self.params.a != 1:
             raise params.InvalidParams('a != 1')
-        if self.params.b and self.params.b != '2':
-            raise params.InvalidParams('b != 2')
+        if self.params.b and self.params.b != 'b':
+            raise params.InvalidParams('b != b')
         return self.write(str(self.params))
 
 
 class PostJsonHandler(BaseHandler):
     @use_params({
-        'a': params.Field(required=True),
+        'a': params.IntegerField(required=True),
         'b': params.Field(),
     }, is_json=True)
     def post(self):
         print 'params', self.params
-        if self.params.a != '1':
+        if self.params.a != 1:
             raise params.InvalidParams('a != 1')
-        if self.params.b and self.params.b != '2':
-            raise params.InvalidParams('b != 2')
+        if self.params.b and self.params.b != 'b':
+            raise params.InvalidParams('b != b')
         return self.write(str(self.params))
 
 

@@ -10,6 +10,7 @@ from .base import get_params_cls, check_method
 
 
 def use_params(df, class_view=False, is_json=False, raise_if_invalid=True):
+    convert = not is_json
     params_cls = get_params_cls(df)
 
     if class_view:
@@ -20,7 +21,7 @@ def use_params(df, class_view=False, is_json=False, raise_if_invalid=True):
             @wraps(view_method)
             def func(self, request, *args, **kwargs):
                 raw = get_raw(request, is_json)
-                request.params = params_cls(raw, raise_if_invalid=raise_if_invalid)
+                request.params = params_cls(raw, convert=convert, raise_if_invalid=raise_if_invalid)
                 return view_method(self, request, *args, **kwargs)
 
             return func
@@ -30,7 +31,7 @@ def use_params(df, class_view=False, is_json=False, raise_if_invalid=True):
             @wraps(view_func)
             def func(request, *args, **kwargs):
                 raw = get_raw(request, is_json)
-                request.params = params_cls(raw, raise_if_invalid=raise_if_invalid)
+                request.params = params_cls(raw, convert=convert, raise_if_invalid=raise_if_invalid)
                 return view_func(request, *args, **kwargs)
 
             return func
@@ -38,8 +39,8 @@ def use_params(df, class_view=False, is_json=False, raise_if_invalid=True):
     return decorator
 
 
-def use_params_class_view(df, is_json=False):
-    return use_params(df, class_view=True, is_json=is_json)
+def use_params_class_view(df, is_json=False, raise_if_invalid=True):
+    return use_params(df, class_view=True, is_json=is_json, raise_if_invalid=raise_if_invalid)
 
 
 def get_raw(request, is_json=False):

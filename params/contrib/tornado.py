@@ -10,6 +10,9 @@ from .base import get_params_cls, check_method
 
 
 def use_params(df, is_json=False, raise_if_invalid=True):
+    # if it's json, do not convert, for json is type specified.
+    # if not json, which means it's urlencode, then convert is needed.
+    convert = not is_json
     params_cls = get_params_cls(df)
 
     def decorator(view_method):
@@ -18,7 +21,7 @@ def use_params(df, is_json=False, raise_if_invalid=True):
         @wraps(view_method)
         def func(self, *args, **kwargs):
             raw = get_raw(self, http_method, is_json)
-            self.params = params_cls(raw, raise_if_invalid=raise_if_invalid)
+            self.params = params_cls(raw, convert=convert, raise_if_invalid=raise_if_invalid)
             return view_method(self, *args, **kwargs)
 
         return func

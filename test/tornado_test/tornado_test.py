@@ -22,10 +22,11 @@ class ParamsTest(AsyncHTTPTestCase):
 
     def test_get(self):
         resp = self.fetch('/get')
-        print 'resp', resp.body
+        print 'resp 1', resp.body
         self.assertEqual(resp.code, param_error_code)
 
         resp = self.fetch('/get?a=1')
+        print 'resp 2', resp.body
         self.assertEqual(resp.code, 200)
 
     def test_post(self):
@@ -42,7 +43,7 @@ class ParamsTest(AsyncHTTPTestCase):
         print 'resp', resp.body
         self.assertEqual(resp.code, param_error_code)
 
-        resp = self.fetch(url, method='POST', body='a=1&b=2')
+        resp = self.fetch(url, method='POST', body='a=1&b=b')
         print 'resp', resp.body
         self.assertEqual(resp.code, 200)
 
@@ -58,11 +59,11 @@ class ParamsTest(AsyncHTTPTestCase):
 
         resp = self.fetch(url, method='POST', body='{"a":"1"}')
         print 'resp 3', resp.body
-        self.assertEqual(resp.code, 200)
+        self.assertEqual(resp.code, param_error_code)
 
         resp = self.fetch(url, method='POST', body='{"a":1}')
         print 'resp 4', resp.body
-        self.assertEqual(resp.code, param_error_code)
+        self.assertEqual(resp.code, 200)
 
     def test_raw(self):
         url = '/raw'
