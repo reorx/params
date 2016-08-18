@@ -9,7 +9,7 @@ userdb = ['asuka', 'lilith', 'ayanami']
 
 
 class UserParams(params.ParamSet):
-    id = params.UUIDField(
+    id = params.UUIDStringField(
         required=True)
     name = params.WordField(
         'name should be a 1~8 length string, and is required',
