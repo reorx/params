@@ -6,10 +6,10 @@ function mycurl() {
 }
 
 echo "POST /register 200:"
-mycurl -X POST -d "hostname=hello.com&ip_addr=8.8.8.8&mac_addr=3D:F2:C9:A6:B3:4F" localhost:8000/register
+mycurl -X POST -d "hostname=hello.com&ip_addr=8.8.8.8&mac_addr=3D:F2:C9:A6:B3:4F&ts=1471510216" localhost:8000/register
 echo
 echo "POST /register 400:"
-mycurl -X POST -d "hostname=hello.com&ip_addr=8.8.8.333&mac_addr=3D:F2:C9:A6:B3:4F" localhost:8000/register
+mycurl -X POST -d "hostname=hello.com&ip_addr=8.8.8.333&mac_addr=3D:F2:C9:A6:B3:4F&ts=1471510216" localhost:8000/register
 echo
 echo "POST /resolves 200:"
 mycurl -X POST -d "hostname=hello.com&ip_addr=10.10.10.1" localhost:8000/resolves

@@ -10,7 +10,9 @@ app = TorextApp()
 
 
 class IPField(params.Field):
-    def validate(self, value):
+    def validate(self, value, **kwargs):
+        value = super(IPField, self).validate(value, **kwargs)
+
         try:
             ipaddress.ip_address(value)
         except ValueError:
@@ -41,11 +43,13 @@ class RegisterHandler(BaseHandler):
         'hostname': params.StringField(required=True),
         'ip_addr': IPField(required=True),
         'mac_addr': mac_field.spawn(required=True),
+        'ts': params.IntegerField(required=True),
     })
     def post(self):
         print self.params.hostname
         print self.params.ip_addr
         print self.params.mac_addr
+        print self.params.ts
         self.write_json(self.params.data)
 
 
