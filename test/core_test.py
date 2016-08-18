@@ -104,3 +104,36 @@ def test_paramset_has():
     p = P(d)
     assert p.has('f0')
     assert not p.has('f1')
+
+
+def test_field_convert():
+    f = Field()
+    f.validate('whatever', convert=True)
+
+    class MultiTypeField(Field):
+        value_type = (bool, int)
+
+    f = MultiTypeField()
+    f.validate('True', convert=True)
+    f.validate('1', convert=True)
+    f.validate(False, convert=True)
+    f.validate(0, convert=True)
+
+
+def test_spawn():
+    desc = 'foo'
+    f = Field(description=desc)
+    f1 = f.spawn(required=True)
+
+    assert f.required is False
+    assert f1.required is True
+    assert f.description == f1.description
+
+
+def test_invalid_params():
+    InvalidParams(u'an error')
+    InvalidParams('an error')
+    InvalidParams(['an error', 'two error'])
+
+    with assert_raises(TypeError):
+        InvalidParams(1)

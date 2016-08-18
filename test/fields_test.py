@@ -22,16 +22,6 @@ value_error_ctx = assert_raises(ValueError)
 type_error_ctx = assert_raises(TypeError)
 
 
-def test_spawn():
-    desc = 'foo'
-    f = Field(description=desc)
-    f1 = f.spawn(required=True)
-
-    assert f.required is False
-    assert f1.required is True
-    assert f.description == f1.description
-
-
 def test_string():
 
     f = StringField()
@@ -221,6 +211,20 @@ def test_float():
 
     with type_error_ctx:
         FloatField(max=2)
+
+
+def test_float_convert():
+    f = FloatField(min=1.0, max=2.0)
+
+    with value_error_ctx:
+        f.validate('a', convert=True)
+
+    f.validate('1', convert=True)
+
+    with value_error_ctx:
+        f.validate('3.0', convert=True)
+
+    f.validate('1.0', convert=True)
 
 
 def test_simple_list():
