@@ -4,7 +4,7 @@ import datetime
 from nose.tools import eq_ as equal
 from nose.tools import assert_raises
 from params.fields import (
-    Field,
+    #Field,
     StringField,
     RegexField,
     WordField,
@@ -15,6 +15,7 @@ from params.fields import (
     ListField,
     UUIDStringField,
     DatetimeField,
+    BooleanField,
 )
 
 
@@ -296,3 +297,15 @@ def test_datetime_convert():
         f.validate('2011-11-11 10:10', convert=True)
     with value_error_ctx:
         f.validate('2011-13-11', convert=True)
+
+
+def test_boollean():
+    with assert_raises(TypeError):
+        f = BooleanField(default='a')
+
+    f = BooleanField()
+
+    v = f.validate(True)
+    assert v is True
+    v = f.validate(False)
+    assert v is False

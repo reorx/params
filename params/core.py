@@ -50,6 +50,9 @@ class Field(object):
 
         self.key = key
         self.required = required
+        if self.value_type is not None and default is not None:
+            if not isinstance(default, self.value_type):
+                raise TypeError('default value should be of type {}'.format(self.value_type))
         self.default = default
 
     # @property

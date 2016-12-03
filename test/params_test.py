@@ -20,6 +20,8 @@ class UserParams(params.ParamSet):
     age = params.IntegerField(
         'age should be a 10~30 int',
         min=10, max=30)
+    is_staff = params.BooleanField(default=True)
+    is_admin = params.BooleanField()
 
     def validate_name(self, value):
         if value not in userdb:
@@ -83,6 +85,28 @@ def check_param(data, error_num):
     params = UserParams(data, raise_if_invalid=False)
     print error_num, len(params.errors), params.errors
     assert error_num == len(params.errors)
+
+
+def test_param_boollean():
+    d = {
+        'id': guuid(),
+        'name': u'asuka',
+        'email': 'asuka@nerv.com',
+    }
+    p = UserParams(d)
+    assert p.is_staff is True
+    assert p.is_admin is None
+
+    d = {
+        'id': guuid(),
+        'name': u'asuka',
+        'email': 'asuka@nerv.com',
+        'is_staff': False,
+        'is_admin': True,
+    }
+    p = UserParams(d)
+    assert p.is_staff is False
+    assert p.is_admin is True
 
 
 def test_wrong_validate_function():

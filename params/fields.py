@@ -18,6 +18,7 @@ __all__ = [
     'ListField',
     'UUIDStringField',
     'DatetimeField',
+    'BooleanField',
 ]
 
 
@@ -289,3 +290,7 @@ class DatetimeField(Field):
                     value, self.format)
             )
         return value
+
+
+class BooleanField(Field):
+    value_type = bool
