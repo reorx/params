@@ -180,7 +180,7 @@ class ParamSet(object):
 
                 try:
                     value = field.validate(value, convert=self.convert)
-                except ValueError, e:
+                except ValueError as e:
                     self.errors.append((key, e))
                 else:
                     self.data[key] = value
@@ -202,7 +202,7 @@ class ParamSet(object):
                     if key in self.data:
                         try:
                             value = getattr(self, attr_name)(self.data[key])
-                        except ValueError, e:
+                        except ValueError as e:
                             self.errors.append((key, e))
                         if field.null is not True:
                             assert value is not None, (
@@ -217,7 +217,7 @@ class ParamSet(object):
         for func in non_field_validate_funcs:
             try:
                 func()
-            except ValueError, e:
+            except ValueError as e:
                 self.errors.append(e)
 
         if raise_if_invalid:
