@@ -228,7 +228,7 @@ class ListField(Field):
                 try:
                     item_value = self.item_field.validate(i, convert=True)
                 
-                ValueError as e:
+                except ValueError as e:
                     raise self.format_exc(
                         '{} in list could not be convert to type {}: {}'.format(i, self.item_field, e))
                 else:
