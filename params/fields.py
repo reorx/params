@@ -227,6 +227,7 @@ class ListField(Field):
             for i in value:
                 try:
                     item_value = self.item_field.validate(i, convert=True)
+                
                 except ValueError as e:
                     raise self.format_exc(
                         '{} in list could not be convert to type {}: {}'.format(i, self.item_field, e))
@@ -267,7 +268,7 @@ class UUIDStringField(StringField):
     def _validate_type(self, value):
         try:
             uuid.UUID(value)
-        except ValueError, e:
+        except ValueError as e:
             raise self.format_exc('Invalid uuid string: %s' % e)
 
 
