@@ -238,6 +238,11 @@ class ParamSet(object):
                 d[f.key] = value
         return d
 
+    def get_raw(self, key, default=NotImplemented):
+        if default is NotImplemented:
+            return self._raw_data[key]
+        return self._raw_data.get(key, default)
+
     def __str__(self):
         return self.__unicode__().encode('utf8')
 
