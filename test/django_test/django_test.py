@@ -24,7 +24,7 @@ def test_funcview():
     with assert_raises(InvalidParams):
         c.get('/func')
 
-    resp = c.get('/func?a=1')
+    resp = c.get('/func?a=1&b=x&b=y')
     print resp.content
 
 

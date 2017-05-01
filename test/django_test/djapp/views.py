@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.views.generic import View
 import params
 from params.contrib.django import use_params, use_params_class_view
+from nose.tools import assert_equal
 
 
 def index(request):
@@ -12,9 +13,11 @@ def index(request):
 
 @use_params({
     'a': params.Field(required=True),
+    'b': params.ListField(),
 })
 def funcview(request):
-    assert request.params.a == '1'
+    assert_equal(request.params.a, '1')
+    assert_equal(request.params.b, [u'x', u'y'])
     return HttpResponse(str(request.params))
 
 
@@ -23,7 +26,7 @@ class ClassView(View):
         'a': params.Field(required=True),
     })
     def get(self, request):
-        assert request.params.a == '1'
+        assert_equal(request.params.a, '1')
         return HttpResponse(str(request.params))
 
 
@@ -31,5 +34,5 @@ class ClassView(View):
     'a': params.Field(required=True),
 }, is_json=True)
 def jsonview(request):
-    assert request.params.a == 1
+    assert_equal(request.params.a, 1)
     return HttpResponse(str(request.params))

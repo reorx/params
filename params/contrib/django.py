@@ -48,7 +48,20 @@ def get_raw(request, is_json=False):
     if is_json:
         raw = _get_json(request)
     else:
-        raw = getattr(request, http_method)
+        _raw = getattr(request, http_method)
+        # convert django <QueryDict> to dict, when <QueryDict>
+        # is like <QueryDict {'a': ['1'], 'b': ['x', 'y']}>,
+        # iteritems will make 'a' return '1', 'b' return 'y',
+        # we should convert it to a normal dict so that 'b' keeps
+        # ['x', 'y']
+        raw = {}
+        for k, v in _raw.iterlists():
+            if not v:
+                continue
+            if len(v) == 1:
+                raw[k] = v[0]
+            else:
+                raw[k] = v
     return raw
 
 
