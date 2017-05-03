@@ -298,6 +298,9 @@ def test_datetime_convert():
     with value_error_ctx:
         f.validate('2011-13-11', convert=True)
 
+    f1 = DatetimeField(format='%Y-%m-%d', force_convert=True)
+    f1.validate('2011-11-11')
+
 
 def test_boollean():
     with assert_raises(TypeError):

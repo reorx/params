@@ -39,7 +39,7 @@ class Field(object):
     def __init__(
             self, description=None,
             null=True, choices=None,
-            key=None, required=False, default=None):
+            key=None, required=False, default=None, force_convert=False):
         """
         null, choices, work on Field.validate
         key, required, default, work on ParamSet.validate
@@ -54,6 +54,7 @@ class Field(object):
             if not isinstance(default, self.value_type):
                 raise TypeError('default value should be of type {}'.format(self.value_type))
         self.default = default
+        self.force_convert = force_convert
 
     # @property
     # def name(self):
@@ -110,7 +111,7 @@ class Field(object):
             else:
                 raise self.format_exc('empty value is not allowed')
 
-        if convert:
+        if convert or self.force_convert:
             value = self._convert_type(value)
         self._validate_type(value)
 
