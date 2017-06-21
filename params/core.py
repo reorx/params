@@ -35,6 +35,7 @@ class InvalidParams(Exception):
 class Field(object):
     name = None
     value_type = None
+    extra_validation_methods = []
 
     def __init__(
             self, description=None,
@@ -118,6 +119,9 @@ class Field(object):
         # Validate choices after type, so that the value has been converted
         if self.choices:
             self._validate_choices(value)
+
+        for method_name in self.extra_validation_methods:
+            getattr(self, method_name)(value)
 
         return value
 

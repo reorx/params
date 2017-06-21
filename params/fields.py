@@ -164,6 +164,8 @@ class URLField(RegexField):
 ###############################################################################
 
 class BaseNumberField(Field):
+    extra_validation_methods = ['_validate_min_max']
+
     """This class is only used as base class"""
     def __init__(self, *args, **kwargs):
         min = kwargs.pop('min', None)
@@ -180,21 +182,13 @@ class BaseNumberField(Field):
 
         super(BaseNumberField, self).__init__(*args, **kwargs)
 
-    def validate(self, value, **kwargs):
-        value = super(BaseNumberField, self).validate(value, **kwargs)
-
-        # validate min-max
-        value = self._validate_min_max(value)
-
-        return value
-
     def _validate_min_max(self, value):
         if self.min is not None:
             if value < self.min:
-                raise self.format_exc('value is too small, min %s' % self.min)
+                raise self.format_exc('value {} is too small, min {}'.format(value, self.min))
         if self.max is not None:
             if value > self.max:
-                raise self.format_exc('vaule is too big, max %s' % self.max)
+                raise self.format_exc('vaule {} is too big, max {}'.format(value, self.max))
 
         return value
 
@@ -204,7 +198,7 @@ class IntegerField(BaseNumberField):
 
 
 class FloatField(BaseNumberField):
-    value_type = float
+    value_type = (float, int)
 
 
 ###############################################################################
