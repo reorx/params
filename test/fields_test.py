@@ -202,16 +202,21 @@ def check_int(kwargs, v, iseq, convert=False):
 
 def test_float():
     f = FloatField()
-    # with value_error_ctx:
-    #     f.validate(1)
-
     f.validate(1.1)
 
-    with type_error_ctx:
-        FloatField(min=1)
+    f = FloatField(min=0.0, max=2.0)
 
-    with type_error_ctx:
-        FloatField(max=2)
+    f.validate(0)
+    f.validate('0', convert=True)
+    f.validate(0.0)
+    f.validate('0.0', convert=True)
+    f.validate(1.1)
+    f.validate('1.1', convert=True)
+    f.validate(2)
+    f.validate(2.0)
+    with value_error_ctx:
+        f.validate(2.1)
+    f.validate(None)
 
 
 def test_float_convert():
