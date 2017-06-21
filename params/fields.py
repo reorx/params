@@ -294,3 +294,18 @@ class DatetimeField(Field):
 
 class BooleanField(Field):
     value_type = bool
+
+    true_strs = ['True', 'true', '1']
+    false_strs = ['False', 'false', '0']
+
+    def _convert_type(self, value):
+        if isinstance(value, basestring):
+            if isinstance(value, unicode):
+                value = value.encode('utf8')
+            if value in self.true_strs:
+                return True
+            elif value in self.false_strs:
+                return False
+            else:
+                self.format_exc('could not convert {} to bool'.format(value))
+        return value

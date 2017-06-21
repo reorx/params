@@ -312,3 +312,13 @@ def test_boollean():
     assert v is True
     v = f.validate(False)
     assert v is False
+
+    # string to bool
+    for i in ['True', 'true', '1']:
+        v = f.validate(i, convert=True)
+        equal(v, True)
+    for i in ['False', 'false', '0']:
+        v = f.validate(i, convert=True)
+        equal(v, False)
+    with assert_raises(ValueError):
+        v = f.validate('wtf', convert=True)
