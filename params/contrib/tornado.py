@@ -53,9 +53,9 @@ def get_raw(hdr, http_method, is_json):
     else:
         raw = {}
         # format arguments
-        for k, v in hdr.request.arguments.iteritems():
+        for k, v in hdr.request.arguments.items():
             if len(v) > 1:
-                raw[k] = map(to_unicode, v)
+                raw[k] = list(map(to_unicode, v))
             else:
                 raw[k] = to_unicode(v[0])
     return raw

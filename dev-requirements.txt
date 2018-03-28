@@ -1,6 +1,5 @@
 nose
 coverage
 django
-nosedjango
-tornado
-torext
+tornado<4.0
+torext>=0.10.0

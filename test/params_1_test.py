@@ -23,5 +23,5 @@ def test_param_1():
 
 def check_param(data, error_num):
     params = FooParams(data, raise_if_invalid=False)
-    print error_num, len(params.errors), params.errors
+    print(error_num, len(params.errors), params.errors)
     assert error_num == len(params.errors)

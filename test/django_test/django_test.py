@@ -10,12 +10,13 @@ from django.test import Client
 from nose.tools import eq_ as equal
 from nose.tools import assert_raises
 from params import InvalidParams
+from params.compat import str_
 
 
 def test_client():
     c = Client()
     resp = c.get('/')
-    equal(resp.content, 'GET')
+    equal(str_(resp.content), 'GET')
 
 
 def test_funcview():
@@ -25,7 +26,7 @@ def test_funcview():
         c.get('/func')
 
     resp = c.get('/func?a=1&b=x&b=y')
-    print resp.content
+    print(resp.content)
 
 
 def test_classview():
@@ -35,7 +36,7 @@ def test_classview():
         c.get('/class')
 
     resp = c.get('/class?a=1')
-    print resp.content
+    print(resp.content)
 
 
 def test_jsonview():
@@ -50,4 +51,4 @@ def test_jsonview():
         c.post('/json', d)
 
     resp = c.post('/json', json.dumps(d), content_type='application/json')
-    print resp.content
+    print(resp.content)

@@ -196,7 +196,7 @@ def check_int(kwargs, v, iseq, convert=False):
     if iseq:
         equal(int(v), f.validate(v, convert=convert))
     else:
-        print v, f.min, f.max
+        print(v, f.min, f.max)
         assert_raises(ValueError, f.validate, v, convert=convert)
 
 

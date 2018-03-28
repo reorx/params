@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import
 
+import six
 import json
 from functools import wraps
 from ..core import InvalidParams
@@ -55,7 +56,7 @@ def get_raw(request, is_json=False):
         # we should convert it to a normal dict so that 'b' keeps
         # ['x', 'y']
         raw = {}
-        for k, v in _raw.iterlists():
+        for k, v in six.iterlists(_raw):
             if not v:
                 continue
             if len(v) == 1:

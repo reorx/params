@@ -13,13 +13,14 @@ from params.contrib.tornado import use_params, use_raw
 
 class BaseHandler(RequestHandler):
     def _handle_request_exception(self, e):
-        from tornado.web import Finish, app_log, gen_log, HTTPError, httputil
+        #from tornado.web import Finish, app_log, gen_log, HTTPError, httputil
+        from tornado.web import app_log, gen_log, HTTPError, httputil
 
-        if isinstance(e, Finish):
-            # Not an error; just finish the request without logging.
-            if not self._finished:
-                self.finish(*e.args)
-            return
+        #if isinstance(e, Finish):
+        #    # Not an error; just finish the request without logging.
+        #    if not self._finished:
+        #        self.finish(*e.args)
+        #    return
 
         ## add
         if isinstance(e, params.InvalidParams):
@@ -62,7 +63,7 @@ class GetHandler(BaseHandler):
         'a': params.IntegerField(required=True),
     })
     def get(self):
-        print 'params', self.params
+        print('params', self.params)
         if self.params.a != 1:
             raise params.InvalidParams('a != 1')
         return self.write(str(self.params))
@@ -75,7 +76,7 @@ class PostHandler(BaseHandler):
 
     @use_params(PostParams)
     def post(self):
-        print 'params', self.params
+        print('params', self.params)
         if self.params.a != 1:
             raise params.InvalidParams('a != 1')
         if self.params.b and self.params.b != 'b':
@@ -89,7 +90,7 @@ class PostJsonHandler(BaseHandler):
         'b': params.Field(),
     }, is_json=True)
     def post(self):
-        print 'params', self.params
+        print('params', self.params)
         if self.params.a != 1:
             raise params.InvalidParams('a != 1')
         if self.params.b and self.params.b != 'b':
@@ -100,7 +101,7 @@ class PostJsonHandler(BaseHandler):
 class RawHandler(BaseHandler):
     @use_raw()
     def post(self):
-        print 'params', self.params
+        print('params', self.params)
         if 'a' not in self.params:
             raise params.InvalidParams('no a')
         return self.write(str(self.params))
@@ -109,7 +110,7 @@ class RawHandler(BaseHandler):
 class RawJsonHandler(BaseHandler):
     @use_raw(is_json=True)
     def post(self):
-        print 'params', self.params
+        print('params', self.params)
         if 'a' not in self.params:
             raise params.InvalidParams('no a')
         return self.write(str(self.params))
@@ -132,10 +133,10 @@ def main():
     define('port', default=8888, help='run on the given port', type=int)
     tornado.options.parse_command_line()
     application = get_app()
-    print 'starting tornado app on port {}'.format(options.port)
+    print('starting tornado app on port {}'.format(options.port))
     for host, rules in application.handlers:
         for i in rules:
-            print i.regex.pattern
+            print(i.regex.pattern)
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
