@@ -59,7 +59,7 @@ def test_field_required():
     d = {'f1': 1}
     with assert_raises(InvalidParams):
         p = P(d)
-        print p
+        print(p)
 
 
 def test_field_default():
@@ -77,7 +77,7 @@ def test_field_default():
     # even with default, required still means there should be value pass in
     with assert_raises(InvalidParams):
         p = P(d)
-        print p
+        print(p)
 
 
 def test_paramset_to_dict():

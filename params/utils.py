@@ -4,9 +4,8 @@
 import sys
 import json
 import copy
+from .compat import PY3, unicode_ as u_
 
-
-PY3 = sys.version_info >= (3,)
 
 if PY3:
     unicode_type = str
@@ -40,7 +39,7 @@ def to_unicode(value):
 def _copy_dict(x, memo):
     y = {}
     memo[id(x)] = y
-    for key, value in x.iteritems():
+    for key, value in x.items():
         y[key] = unicode_copy(value, memo)
     return y
 
@@ -82,6 +81,6 @@ def json_decode(value):
 
 
 def is_empty_string(v):
-    if v == '' or v == u'':
+    if v == '' or v == u_(''):
         return True
     return False

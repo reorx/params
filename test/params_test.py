@@ -83,7 +83,7 @@ def test_param():
 
 def check_param(data, error_num):
     params = UserParams(data, raise_if_invalid=False)
-    print error_num, len(params.errors), params.errors
+    print(error_num, len(params.errors), params.errors)
     assert error_num == len(params.errors)
 
 

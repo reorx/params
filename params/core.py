@@ -1,7 +1,9 @@
 # coding: utf-8
 
 import copy
+from six import with_metaclass
 from .utils import is_empty_string, unicode_copy, to_unicode, basestring_type
+from .compat import PY2, unicode_ as u_
 
 __all__ = [
     'InvalidParams',
@@ -26,10 +28,14 @@ class InvalidParams(Exception):
         if isinstance(self.errors, basestring_type):
             return self.errors
         else:
-            return u'\n'.join(u'{}: {}'.format(k, e) for k, e in self.errors)
+            return u_('\n').join(u_('{}: {}').format(k, e) for k, e in self.errors)
 
-    def __str__(self):
-        return unicode(self).encode('utf8')
+    if PY2:
+        def __str__(self):
+            return self.__unicode__().encode('utf8')
+    else:
+        def __str__(self):
+            return self.__unicode__()
 
 
 class Field(object):
@@ -148,7 +154,7 @@ class ParamSetMeta(type):
             if hasattr(base, '_fields'):
                 fields.update(base._fields)
 
-        for k, v in attrs.iteritems():
+        for k, v in attrs.items():
             # TODO Assert not reserved attribute name
             if isinstance(v, Field):
                 v.name = k
@@ -159,14 +165,12 @@ class ParamSetMeta(type):
         return type.__new__(cls, name, bases, attrs)
 
 
-class ParamSet(object):
-    __metaclass__ = ParamSetMeta
-
+class ParamSet(with_metaclass(ParamSetMeta, object)):
     convert = False
 
     @classmethod
     def keys(cls):
-        return [i.key for i in cls._fields.itervalues()]
+        return [i.key for i in cls._fields.values()]
 
     def __init__(self, raw_data, raise_if_invalid=True, convert=False):
         self._raw_data = unicode_copy(raw_data)
@@ -177,7 +181,7 @@ class ParamSet(object):
         self.validate(raise_if_invalid=raise_if_invalid)
 
     def validate(self, raise_if_invalid=True):
-        for name, field in self.__class__._fields.iteritems():
+        for name, field in self.__class__._fields.items():
             key = field.key
             if key in self._raw_data:
 
@@ -237,7 +241,7 @@ class ParamSet(object):
         the result will represent both data and schema.
         """
         d = {}
-        for f in self.__class__._fields.itervalues():
+        for f in self.__class__._fields.values():
             value = getattr(self, f.name)
             if value is not None or (value is None and include_none):
                 d[f.key] = value
@@ -248,14 +252,18 @@ class ParamSet(object):
             return self._raw_data[key]
         return self._raw_data.get(key, default)
 
-    def __str__(self):
-        return self.__unicode__().encode('utf8')
-
     def __unicode__(self):
-        return u'<%s: %s; errors=%s>' % (
+        return u_('<%s: %s; errors=%s>') % (
             self.__class__.__name__,
-            u','.join([u'%s=%s' % (k, repr(v)) for k, v in self.data.iteritems()]),
+            u_(',').join([u_('%s=%s') % (k, repr(v)) for k, v in self.data.items()]),
             self.errors)
+
+    if PY2:
+        def __str__(self):
+            return self.__unicode__().encode('utf8')
+    else:
+        def __str__(self):
+            return self.__unicode__()
 
 
 def define_params(kwargs, datatype='form'):

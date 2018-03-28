@@ -1,11 +1,13 @@
 # coding: utf-8
 
+import six
 import re
 import uuid
 import datetime
 
 from .core import Field
 from .utils import basestring_type
+from .compat import decode_, encode_
 
 __all__ = [
     'StringField',
@@ -73,11 +75,11 @@ class StringField(Field):
         # because basestring could not be used to convert value, this method is overrided
         if isinstance(value, str):
             try:
-                return value.decode('utf8')
+                return decode_(value, 'utf8')
             except UnicodeDecodeError:
                 raise ValueError('could not convert {} to unicode'.format(repr(value)))
         else:
-            return unicode(value)
+            return six.text_type(value)
 
     def _validate_length(self, value):
         length = self.length
@@ -293,9 +295,9 @@ class BooleanField(Field):
     false_strs = ['False', 'false', '0']
 
     def _convert_type(self, value):
-        if isinstance(value, basestring):
-            if isinstance(value, unicode):
-                value = value.encode('utf8')
+        if isinstance(value, six.string_types):
+            if isinstance(value, six.text_type):
+                value = encode_(value, 'utf8')
             if value in self.true_strs:
                 return True
             elif value in self.false_strs:
