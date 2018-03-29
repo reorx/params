@@ -49,7 +49,15 @@ def get_raw(request, is_json=False):
     if is_json:
         raw = _get_json(request)
     else:
-        _raw = getattr(request, http_method)
+        # only handle GET and POST because django only have these two attrs on request
+        # NOTE can also use QueryDict(request.body) for PUT, DELETE, but that will take
+        # more uncessary complexity
+        if http_method == 'GET':
+            _raw = request.GET
+        elif http_method == 'POST':
+            _raw = request.POST
+        else:
+            _raw = {}
         # convert django <QueryDict> to dict, when <QueryDict>
         # is like <QueryDict {'a': ['1'], 'b': ['x', 'y']}>,
         # iteritems will make 'a' return '1', 'b' return 'y',
