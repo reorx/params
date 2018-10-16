@@ -34,7 +34,7 @@ def test_string():
     with value_error_ctx:
         StringField(length=-1)
 
-    f = StringField(length=1)
+    f = StringField(length=1, null=False)
     f.validate('a')
     with value_error_ctx:
         f.validate('')
@@ -121,6 +121,7 @@ def test_words():
 
 def test_email():
     pairs = [
+        ('', True),
         ('i@t.cn', True),
         ('longname@longdomain.cn', True),
         ('nor@mal.thr', True),

@@ -62,14 +62,12 @@ class StringField(Field):
             raise TypeError('length should be int or tuple: {}'.format(repr(length)))
         return length
 
-    def validate(self, value, **kwargs):
-        value = super(StringField, self).validate(value, **kwargs)
+    def _validate_type(self, value):
+        super(StringField, self)._validate_type(value)
 
         # validate length
         if self.length:
-            value = self._validate_length(value)
-
-        return value
+            self._validate_length(value)
 
     def _convert_type(self, value):
         # because basestring could not be used to convert value, this method is overrided
@@ -110,15 +108,13 @@ class RegexField(StringField):
 
         super(RegexField, self).__init__(*args, **kwgs)
 
-    def validate(self, value, **kwargs):
-        value = super(RegexField, self).validate(value, **kwargs)
+    def _validate_type(self, value):
+        super(RegexField, self)._validate_type(value)
 
-        c_value = value
-        if not self.regex.search(c_value):
+        if not self.regex.search(value):
             raise self.format_exc(
                 'regex pattern (%s, %s) is not match with value "%s"' %
-                (self.regex.pattern, self.regex.flags, c_value))
-        return value
+                (self.regex.pattern, self.regex.flags, value))
 
 
 class WordField(RegexField):
