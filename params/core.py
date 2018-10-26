@@ -13,13 +13,32 @@ __all__ = [
 ]
 
 
+class FieldErrorInfo(object):
+    key = None
+    message = None
+
+    def __init__(self, key, message):
+        self.key = key
+        self.message = message
+
+    def __str__(self):
+        return '{}: {}'.format(self.key, self.message)
+
+    def __repr__(self):
+        return 'FieldErrorInfo(key={} message={})'.format(self.key, self.message)
+
+
 class InvalidParams(Exception):
     def __init__(self, errors):
         """errors is list contains key, value pairs"""
         if isinstance(errors, list):
             pass
+        # Deprecated, this block only exists for compatibility,
+        # you should not pass str as errors
         elif isinstance(errors, basestring_type):
-            errors = to_unicode(errors)
+            errors = [
+                FieldErrorInfo(None, to_unicode(errors))
+            ]
         else:
             raise TypeError('errors must be list or str')
         self.errors = errors
@@ -28,7 +47,7 @@ class InvalidParams(Exception):
         if isinstance(self.errors, basestring_type):
             return self.errors
         else:
-            return u_('\n').join(u_('{}: {}').format(k, e) for k, e in self.errors)
+            return u_('\n').join(u_('{}: {}').format(e.key, e.message) for e in self.errors)
 
     if PY2:
         def __str__(self):
@@ -190,12 +209,12 @@ class ParamSet(with_metaclass(ParamSetMeta, object)):
                 try:
                     value = field.validate(value, convert=self.convert)
                 except ValueError as e:
-                    self.errors.append((key, e))
+                    self.errors.append(FieldErrorInfo(key, str(e)))
                 else:
                     self.data[key] = value
             else:
                 if field.required:
-                    self.errors.append((key, field.format_exc('%s is required' % key)))
+                    self.errors.append(FieldErrorInfo(key, field.format_exc('%s is required' % key)))
                 # elif field.default is not None:
                 #     self.data[key] = field.default
 
@@ -212,7 +231,7 @@ class ParamSet(with_metaclass(ParamSetMeta, object)):
                         try:
                             value = getattr(self, attr_name)(self.data[key])
                         except ValueError as e:
-                            self.errors.append((key, e))
+                            self.errors.append(FieldErrorInfo(key, str(e)))
                         if field.null is not True:
                             assert value is not None, (
                                 'Forget to return value after validation?'
@@ -227,7 +246,7 @@ class ParamSet(with_metaclass(ParamSetMeta, object)):
             try:
                 func()
             except ValueError as e:
-                self.errors.append(e)
+                self.errors.append(FieldErrorInfo(None, str(e)))
 
         if raise_if_invalid:
             if self.errors:
