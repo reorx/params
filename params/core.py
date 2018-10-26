@@ -27,6 +27,9 @@ class FieldErrorInfo(object):
     def __repr__(self):
         return 'FieldErrorInfo(key={} message={})'.format(self.key, self.message)
 
+    def __getattr__(self, item):
+        return getattr(self, item)
+
 
 class InvalidParams(Exception):
     def __init__(self, errors):
