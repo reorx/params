@@ -10,7 +10,7 @@ from ..core import InvalidParams
 from .base import get_params_cls, check_method
 
 
-def use_params(df, class_view=False, is_json=False, raise_if_invalid=True, is_list=False):
+def use_params(df, class_view=False, is_json=False, raise_if_invalid=True, is_list=False, list_key=None):
     convert = not is_json
     params_cls = get_params_cls(df)
     if is_list and not is_json:
@@ -24,7 +24,11 @@ def use_params(df, class_view=False, is_json=False, raise_if_invalid=True, is_li
             @wraps(view_method)
             def func(self, request, *args, **kwargs):
                 raw = get_raw(request, is_json)
+                if list_key:
+                    raw = raw[list_key]
                 if is_list:
+                    if not isinstance(raw, list):
+                        raise InvalidParams('request body must be of type list, got: {}'.format(type(raw)))
                     request.params = [params_cls(x, convert=convert, raise_if_invalid=raise_if_invalid) for x in raw]
                 else:
                     request.params = params_cls(raw, convert=convert, raise_if_invalid=raise_if_invalid)
@@ -37,7 +41,11 @@ def use_params(df, class_view=False, is_json=False, raise_if_invalid=True, is_li
             @wraps(view_func)
             def func(request, *args, **kwargs):
                 raw = get_raw(request, is_json)
+                if list_key:
+                    raw = raw[list_key]
                 if is_list:
+                    if not isinstance(raw, list):
+                        raise InvalidParams('request body must be of type list, got: {}'.format(type(raw)))
                     request.params = [params_cls(x, convert=convert, raise_if_invalid=raise_if_invalid) for x in raw]
                 else:
                     request.params = params_cls(raw, convert=convert, raise_if_invalid=raise_if_invalid)
