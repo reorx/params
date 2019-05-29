@@ -52,3 +52,18 @@ def test_jsonview():
 
     resp = c.post('/json', json.dumps(d), content_type='application/json')
     print(resp.content)
+
+
+def test_jsonlistview():
+    c = Client()
+
+    # GET on json=True is not allowed
+    with assert_raises(ValueError):
+        c.get('/jsonlist')
+
+    d = {'data': [{'a': 1}]}
+    with assert_raises(InvalidParams):
+        c.post('/jsonlist', d)
+
+    resp = c.post('/jsonlist', json.dumps(d), content_type='application/json')
+    print(resp.content)
