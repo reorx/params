@@ -21,4 +21,5 @@ urlpatterns = [
     url(r'^func$', views.funcview),
     url(r'^class$', views.ClassView.as_view()),
     url(r'^json$', views.jsonview),
+    url(r'^jsonlist$', views.jsonlistview),
 ]
