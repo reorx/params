@@ -40,7 +40,7 @@ def jsonview(request):
 
 @use_params({
     'a': params.Field(required=True),
-}, is_json=True, is_list=True, list_key='data')
+}, is_json=True, is_list=True)
 def jsonlistview(request):
     assert_equal(request.params[0].a, 1)
     return HttpResponse(str(request.params))
