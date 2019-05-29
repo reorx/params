@@ -3,8 +3,8 @@
 import datetime
 from nose.tools import eq_ as equal
 from nose.tools import assert_raises
+from params.core import ParamSet, Field
 from params.fields import (
-    #Field,
     StringField,
     RegexField,
     WordField,
@@ -246,6 +246,18 @@ def test_simple_list():
         list_field.validate(['b', 'c', 'd'])
     with value_error_ctx:
         list_field.validate(['z', 'a', 'b'])
+
+
+def test_paramset_list():
+    class ItemParams(ParamSet):
+        a = Field(required=True)
+
+    list_field = ListField(item_class=ItemParams)
+
+    with value_error_ctx:
+        list_field.validate(['a', 'b'])
+
+    list_field.validate([{'a': 1}])
 
 
 def test_type_list_convert():

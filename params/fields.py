@@ -5,7 +5,7 @@ import re
 import uuid
 import datetime
 
-from .core import Field
+from .core import Field, ParamSet, InvalidParams
 from .utils import basestring_type
 from .compat import decode_, encode_
 
@@ -208,12 +208,22 @@ class ListField(Field):
 
     def __init__(self, *args, **kwargs):
         self.item_field = kwargs.pop('item_field', None)
+        if self.item_field and not isinstance(self.item_field, Field):
+            raise TypeError('item_field must be instance of Field')
+
+        self.item_class = kwargs.pop('item_class', None)
+        if self.item_class and not issubclass(self.item_class, ParamSet):
+            raise TypeError('item_class must be subclass of ParamSet')
+
+        if self.item_field and self.item_class:
+            raise ValueError('item_field and item_class are mutual excluded')
         super(ListField, self).__init__(*args, **kwargs)
 
     def _convert_type(self, value):
         if not isinstance(value, list):
             value = [value]
 
+        # only convert item when item_field exists
         if self.item_field:
             formatted_value = []
             for i in value:
@@ -240,6 +250,13 @@ class ListField(Field):
                 except ValueError as e:
                     raise self.format_exc(
                         '{} in list is not of type {}: {}'.format(i, self.item_field, e))
+        elif self.item_class:
+            for i in value:
+                try:
+                    self.item_class(i, raise_if_invalid=True)
+                except InvalidParams as e:
+                    raise self.format_exc(
+                        '{} in list is not of type {}: {}'.format(i, self.item_class, e))
 
     def _validate_choices(self, value):
         bad_values = []
