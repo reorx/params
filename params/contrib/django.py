@@ -10,9 +10,11 @@ from ..core import InvalidParams
 from .base import get_params_cls, check_method
 
 
-def use_params(df, class_view=False, is_json=False, raise_if_invalid=True):
+def use_params(df, class_view=False, is_json=False, raise_if_invalid=True, is_list=False):
     convert = not is_json
     params_cls = get_params_cls(df)
+    if is_list and not is_json:
+        raise ValueError('is_json must be True when is_list is True')
 
     if class_view:
         def decorator(view_method):
@@ -22,7 +24,10 @@ def use_params(df, class_view=False, is_json=False, raise_if_invalid=True):
             @wraps(view_method)
             def func(self, request, *args, **kwargs):
                 raw = get_raw(request, is_json)
-                request.params = params_cls(raw, convert=convert, raise_if_invalid=raise_if_invalid)
+                if is_list:
+                    request.params = [params_cls(x, convert=convert, raise_if_invalid=raise_if_invalid) for x in raw]
+                else:
+                    request.params = params_cls(raw, convert=convert, raise_if_invalid=raise_if_invalid)
                 return view_method(self, request, *args, **kwargs)
 
             return func
@@ -32,7 +37,10 @@ def use_params(df, class_view=False, is_json=False, raise_if_invalid=True):
             @wraps(view_func)
             def func(request, *args, **kwargs):
                 raw = get_raw(request, is_json)
-                request.params = params_cls(raw, convert=convert, raise_if_invalid=raise_if_invalid)
+                if is_list:
+                    request.params = [params_cls(x, convert=convert, raise_if_invalid=raise_if_invalid) for x in raw]
+                else:
+                    request.params = params_cls(raw, convert=convert, raise_if_invalid=raise_if_invalid)
                 return view_func(request, *args, **kwargs)
 
             return func
