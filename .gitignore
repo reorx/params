@@ -21,3 +21,4 @@ docs/_build/
 cover/
 venv3/
 .tox/
+htmlcov/
