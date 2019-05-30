@@ -52,8 +52,8 @@ def use_params(df, class_view=False, is_json=False, raise_if_invalid=True, is_li
     return decorator
 
 
-def use_params_class_view(df, is_json=False, raise_if_invalid=True):
-    return use_params(df, class_view=True, is_json=is_json, raise_if_invalid=raise_if_invalid)
+def use_params_class_view(df, is_json=False, raise_if_invalid=True, is_list=False):
+    return use_params(df, class_view=True, is_json=is_json, raise_if_invalid=raise_if_invalid, is_list=is_list)
 
 
 def get_raw(request, is_json=False):
