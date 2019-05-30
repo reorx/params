@@ -1,5 +1,11 @@
 # coding: utf-8
 
+try:
+    import tornado
+except ImportError:
+    from nose.plugins.skip import SkipTest
+    raise SkipTest('no module tornado')
+
 import tornado_app
 from tornado.testing import AsyncHTTPTestCase
 from nose.tools import assert_raises

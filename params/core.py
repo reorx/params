@@ -200,6 +200,8 @@ class ParamSet(with_metaclass(ParamSetMeta, object)):
         self.validate(raise_if_invalid=raise_if_invalid)
 
     def validate(self, raise_if_invalid=True):
+        if not isinstance(self._raw_data, dict):
+            raise InvalidParams('params data is not a dict')
         for name, field in self.__class__._fields.items():
             key = field.key
             if key in self._raw_data:

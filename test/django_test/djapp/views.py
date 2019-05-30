@@ -36,3 +36,11 @@ class ClassView(View):
 def jsonview(request):
     assert_equal(request.params.a, 1)
     return HttpResponse(str(request.params))
+
+
+@use_params({
+    'a': params.Field(required=True),
+}, is_json=True, is_list=True)
+def jsonlistview(request):
+    assert_equal(request.params[0].a, 1)
+    return HttpResponse(str(request.params))

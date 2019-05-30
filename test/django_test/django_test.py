@@ -47,8 +47,27 @@ def test_jsonview():
         c.get('/json')
 
     d = {'a': 1}
+    # InvalidParams: Could not parse body as json
     with assert_raises(InvalidParams):
         c.post('/json', d)
 
     resp = c.post('/json', json.dumps(d), content_type='application/json')
+    print(resp.content)
+
+
+def test_jsonlistview():
+    c = Client()
+    content_type = 'application/json'
+
+    # GET on json=True is not allowed
+    with assert_raises(ValueError):
+        c.get('/jsonlist')
+
+    d = {'a': 1}
+    # InvalidParams: request body must be of type list
+    with assert_raises(InvalidParams):
+        c.post('/jsonlist', d, content_type=content_type)
+
+    d = [{'a': 1}]
+    resp = c.post('/jsonlist', d, content_type=content_type)
     print(resp.content)
