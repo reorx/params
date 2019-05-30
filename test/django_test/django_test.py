@@ -68,5 +68,5 @@ def test_jsonlistview():
         c.post('/jsonlist', json.dumps(d), content_type=content_type)
 
     d = [{'a': 1}]
-    resp = c.post('/jsonlist', d, content_type=content_type)
+    resp = c.post('/jsonlist', json.dumps(d), content_type=content_type)
     print(resp.content)
