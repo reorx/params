@@ -1,8 +1,8 @@
 # coding: utf-8
 
+import pytest
 import params
 import uuid
-from nose.tools import assert_raises
 
 
 userdb = ['asuka', 'lilith', 'ayanami']
@@ -43,45 +43,39 @@ def guuid():
     return str(uuid.uuid4())
 
 
-def test_param():
-    data_pairs = [
-        ({
-            'id': guuid(),
-            'name': u'asuka',
-            'email': 'asuka@nerv.com',
-        }, 0),
-        ({
-            'id': '123',  # x
-            'name': 'lilith',
-            'email': u'lilith001@eva.com',
-            'age': 10,
-        }, 1),
-        ({
-            'id': 'a3',  # x
-            'name': 'ayanami',
-            'email': 'rei@nerv.com',  # x
-            'age': 'unknown',  # x
-        }, 3),
-        ({
-            'id': 'b3',  # x
-            'name': 'hikali',  # x
-            'email': 'hikali@nerv',  # x
-            'age': 30,
-        }, 3),
-        ({
-            'id': 'c4',  # x
-            'name': 'wtfissooooolong',  # x
-            'email': 'eva@god',  # x
-            'age': 0,  # x
-        }, 4),
-        ({}, 3),
-    ]
-
-    for data, error_num in data_pairs:
-        yield check_param, data, error_num
-
-
-def check_param(data, error_num):
+@pytest.mark.parametrize('data, error_num', [
+    ({
+        'id': guuid(),
+        'name': u'asuka',
+        'email': 'asuka@nerv.com',
+    }, 0),
+    ({
+        'id': '123',  # x
+        'name': 'lilith',
+        'email': u'lilith001@eva.com',
+        'age': 10,
+    }, 1),
+    ({
+        'id': 'a3',  # x
+        'name': 'ayanami',
+        'email': 'rei@nerv.com',  # x
+        'age': 'unknown',  # x
+    }, 3),
+    ({
+        'id': 'b3',  # x
+        'name': 'hikali',  # x
+        'email': 'hikali@nerv',  # x
+        'age': 30,
+    }, 3),
+    ({
+        'id': 'c4',  # x
+        'name': 'wtfissooooolong',  # x
+        'email': 'eva@god',  # x
+        'age': 0,  # x
+    }, 4),
+    ({}, 3),
+])
+def test_param(data, error_num):
     params = UserParams(data, raise_if_invalid=False)
     print(error_num, len(params.errors), params.errors)
     assert error_num == len(params.errors)
@@ -118,7 +112,7 @@ def test_wrong_validate_function():
 
     DemoParams({})
 
-    with assert_raises(AssertionError):
+    with pytest.raises(AssertionError):
         DemoParams({'a': 1})
 
 
@@ -134,7 +128,7 @@ def test_setattr():
         a = params.Field()
 
     p = DemoParams({})
-    with assert_raises(AttributeError):
+    with pytest.raises(AttributeError):
         p.a = 1
 
     p.whatever = 2

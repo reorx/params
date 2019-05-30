@@ -8,14 +8,13 @@ clean:
 build:
 	@python setup.py build
 
-test-coverage:
-	PYTHONPATH=. nosetests -v --with-coverage --cover-package=params test
-
-test-coverage-html:
-	PYTHONPATH=. nosetests -v --with-coverage --cover-package=params --cover-html test
-
 test:
-	PYTHONPATH=. nosetests -v test
+	PYTHONPATH=. pytest -v test
+
+test-coverage:
+	PYTHONPATH=. pytest -v \
+		--cov=params --cov-config=tox.ini --cov-report=html \
+		test
 
 publish:
 	python setup.py sdist bdist_wheel upload

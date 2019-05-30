@@ -1,7 +1,7 @@
 # coding: utf-8
 
+import pytest
 import params
-from nose.tools import assert_raises
 
 
 class FooParams(params.ParamSet):
@@ -9,19 +9,13 @@ class FooParams(params.ParamSet):
     quz = params.Field()
 
 
-def test_param_1():
-    data_pairs = [
-        ({
-            'bar': '',
-            'quz': 'QUZ',
-        }, 0),
-    ]
-
-    for data, error_num in data_pairs:
-        yield check_param, data, error_num
-
-
-def check_param(data, error_num):
+@pytest.mark.parametrize('data, error_num', [
+    ({
+        'bar': '',
+        'quz': 'QUZ',
+    }, 0),
+])
+def test_param_1(data, error_num):
     params = FooParams(data, raise_if_invalid=False)
     print(error_num, len(params.errors), params.errors)
     assert error_num == len(params.errors)

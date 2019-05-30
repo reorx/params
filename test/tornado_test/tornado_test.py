@@ -1,14 +1,13 @@
 # coding: utf-8
 
+import pytest
 try:
     import tornado
 except ImportError:
-    from nose.plugins.skip import SkipTest
-    raise SkipTest('no module tornado')
+    pytest.skip('no module tornado')
 
 import tornado_app
 from tornado.testing import AsyncHTTPTestCase
-from nose.tools import assert_raises
 import params
 from params.contrib.tornado import use_params, use_raw
 from params.compat import str_
@@ -104,7 +103,7 @@ class ParamsTest(AsyncHTTPTestCase):
 def test_invalid_http_method():
     from tornado.web import RequestHandler
 
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         class DemoHandler(RequestHandler):
             @use_params({
                 'a': params.Field(),

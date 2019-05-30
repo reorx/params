@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from nose.tools import eq_ as equal
+import pytest
 from params.core import ParamSet, Field, InvalidParams
-from nose.tools import assert_raises
 
 
 def test_field_null():
@@ -14,9 +13,9 @@ def test_field_null():
     f0.validate(0)
 
     f1 = Field(null=False)
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         f1.validate(None)
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         f1.validate('')
     # 0 is not null, only '' and None are
     f1.validate(0)
@@ -26,15 +25,15 @@ def test_field_choices():
     f0 = Field(null=False, choices=[1, '2', ''])
 
     # null=False priority is higher than choices
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         f0.validate('')
 
     f0.validate(1)
     f0.validate('2')
 
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         f0.validate('1')
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         f0.validate(2)
 
 
@@ -45,7 +44,7 @@ def test_field_key():
     d = {'0f': 1, 'f0': 2}
     p = P(d)
 
-    equal(p.f0, d['0f'])
+    assert p.f0 == d['0f']
 
 
 def test_field_required():
@@ -57,7 +56,7 @@ def test_field_required():
     p = P(d)
 
     d = {'f1': 1}
-    with assert_raises(InvalidParams):
+    with pytest.raises(InvalidParams):
         p = P(d)
         print(p)
 
@@ -75,7 +74,7 @@ def test_field_default():
 
     d = {'f1': 1}
     # even with default, required still means there should be value pass in
-    with assert_raises(InvalidParams):
+    with pytest.raises(InvalidParams):
         p = P(d)
         print(p)
 
@@ -87,12 +86,12 @@ def test_paramset_to_dict():
 
     d = {'f0': 0, 'f1': 1, 'f2': 2}
     p = P(d)
-    equal(set(p.to_dict().keys()), {'f0', 'f1'})
+    assert set(p.to_dict().keys()) == {'f0', 'f1'}
 
     d = {'f0': 0}
     p = P(d)
     # default will be involved in to_dict result
-    equal(set(p.to_dict().keys()), {'f0', 'f1'})
+    assert set(p.to_dict().keys()) == {'f0', 'f1'}
 
 
 def test_paramset_has():
@@ -135,5 +134,5 @@ def test_invalid_params():
     InvalidParams('an error')
     InvalidParams(['an error', 'two error'])
 
-    with assert_raises(TypeError):
+    with pytest.raises(TypeError):
         InvalidParams(1)

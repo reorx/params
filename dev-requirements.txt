@@ -1,5 +1,5 @@
-nose
-coverage
+pytest
+pytest-cov
 django
 tornado<4.0
 torext>=0.10.0
