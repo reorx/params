@@ -21,8 +21,18 @@ class FieldErrorInfo(object):
         self.key = key
         self.message = message
 
-    def __str__(self):
-        return '{}: {}'.format(self.key, self.message)
+    def __unicode__(self):
+        if self.key:
+            return u_('{}: {}').format(self.key, self.message)
+        else:
+            return u_(self.message)
+
+    if PY2:
+        def __str__(self):
+            return self.__unicode__().encode('utf8')
+    else:
+        def __str__(self):
+            return self.__unicode__()
 
     def __repr__(self):
         return 'FieldErrorInfo(key={} message={})'.format(self.key, self.message)
@@ -32,7 +42,9 @@ class InvalidParams(Exception):
     def __init__(self, errors):
         """errors is list contains key, value pairs"""
         if isinstance(errors, list):
-            pass
+            for i in errors:
+                if not isinstance(i, FieldErrorInfo):
+                    raise TypeError('errors item must be instance of FieldErrorInfo, got {} ({})'.format(type(i), i))
         # Deprecated, this block only exists for compatibility,
         # you should not pass str as errors
         elif isinstance(errors, basestring_type):
@@ -47,7 +59,7 @@ class InvalidParams(Exception):
         if isinstance(self.errors, basestring_type):
             return self.errors
         else:
-            return u_('\n').join(u_('{}: {}').format(e.key, e.message) for e in self.errors)
+            return u_('\n').join(e.__unicode__() for e in self.errors)
 
     if PY2:
         def __str__(self):

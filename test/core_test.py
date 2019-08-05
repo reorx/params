@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from params.core import ParamSet, Field, InvalidParams
+from params.core import ParamSet, Field, InvalidParams, FieldErrorInfo
 
 
 def test_field_null():
@@ -130,9 +130,17 @@ def test_spawn():
 
 
 def test_invalid_params():
-    InvalidParams(u'an error')
-    InvalidParams('an error')
-    InvalidParams(['an error', 'two error'])
+    e = InvalidParams(u'an error')
+    print('InvalidParams 1: {}'.format(e))
+    e = InvalidParams('an error')
+    print('InvalidParams 2: {}'.format(e))
+    e = InvalidParams([
+        FieldErrorInfo('a', 'foo'),
+        FieldErrorInfo('b', 'bar'),
+    ])
+    print('InvalidParams 3: {}'.format(e))
 
+    with pytest.raises(TypeError):
+        InvalidParams(['an error', 'two error'])
     with pytest.raises(TypeError):
         InvalidParams(1)
