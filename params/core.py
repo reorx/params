@@ -106,8 +106,8 @@ class Field(object):
     # def name(self):
     #     raise NotImplementedError
 
-    def format_exc(self, error_message=None):
-        return ValueError(self.description or error_message)
+    def format_exc(self, error_message=None, error_class=ValueError):
+        return error_class(self.description or error_message)
 
     def _validate_choices(self, value):
         if value not in self.choices:
@@ -120,7 +120,7 @@ class Field(object):
             return
 
         if not isinstance(value, self.value_type):
-            raise ValueError('{} is not of type {}'.format(value, self.value_type))
+            raise TypeError('{} is not of type {}'.format(value, self.value_type))
 
     def _convert_type(self, value):
         """Override this method to implement type specified conversion"""
@@ -147,7 +147,7 @@ class Field(object):
         if success:
             return conv_value
         else:
-            raise ValueError('could not convert {} to type {}: {}'.format(value, self.value_type, error))
+            raise TypeError('could not convert {} to type {}: {}'.format(value, self.value_type, error))
 
     def is_null(self, value):
         return value in self.null_values
@@ -234,7 +234,7 @@ class ParamSet(with_metaclass(ParamSetMeta, object)):
 
                 try:
                     value = field.validate(value, convert=self.convert_fields)
-                except ValueError as e:
+                except (TypeError, ValueError) as e:
                     self.errors.append(FieldErrorInfo(key, str(e)))
                 else:
                     self.data[key] = value

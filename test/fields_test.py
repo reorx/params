@@ -28,7 +28,7 @@ def test_string():
     f = StringField(null_values=(None, ))
     assert '' == f.validate('')
 
-    with value_error_ctx:
+    with type_error_ctx:
         f.validate(123)
 
     with value_error_ctx:
@@ -65,6 +65,9 @@ def test_string():
     with value_error_ctx:
         f.validate('aaa')
 
+    with type_error_ctx:
+        StringField(null_values=()).validate(None)
+
 
 @pytest.mark.parametrize('pattern, match, result', [
     (r'^\w+', 123, False),
@@ -84,7 +87,11 @@ def test_regex(pattern, match, result):
     if result:
         assert match == field.validate(match)
     else:
-        with value_error_ctx:
+        if isinstance(match, str):
+            raises = value_error_ctx
+        else:
+            raises = type_error_ctx
+        with raises:
             field.validate(match)
 
 
@@ -184,7 +191,11 @@ def check_int(kwargs, v, valid, convert=False):
         assert int(v) == f.validate(v, convert=convert)
     else:
         print(v, f.min, f.max)
-        pytest.raises(ValueError, f.validate, v, convert=convert)
+        if isinstance(v, int):
+            raises = ValueError
+        else:
+            raises = TypeError
+        pytest.raises(raises, f.validate, v, convert=convert)
 
 
 def test_float():
@@ -209,7 +220,7 @@ def test_float():
 def test_float_convert():
     f = FloatField(min=1.0, max=2.0)
 
-    with value_error_ctx:
+    with type_error_ctx:
         f.validate('a', convert=True)
 
     f.validate('1', convert=True)
@@ -255,7 +266,7 @@ def test_type_list_convert():
         list_field.validate(['0', '1', '2'], convert=True)
     with value_error_ctx:
         list_field.validate(['1', '2', '3', '4'], convert=True)
-    with value_error_ctx:
+    with type_error_ctx:
         list_field.validate(['a', '2', '3'], convert=True)
 
 
@@ -279,7 +290,7 @@ def test_datetime():
 
     f = DatetimeField(format='%Y-%m-%d')
 
-    with value_error_ctx:
+    with type_error_ctx:
         f.validate('2011-11-11')
 
     f.validate(datetime.datetime.now())
@@ -318,5 +329,5 @@ def test_boollean():
     for i in ['False', 'false', '0']:
         v = f.validate(i, convert=True)
         assert v == False
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         v = f.validate('wtf', convert=True)
