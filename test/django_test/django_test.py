@@ -53,6 +53,15 @@ def test_jsonview():
     resp = c.post('/json', json.dumps(d), content_type='application/json')
     print(resp.content)
 
+    d1 = {'a': 1, 'b': None}
+    # InvalidParams: b type error
+    with pytest.raises(InvalidParams):
+        c.post('/json', json.dumps(d1), content_type='application/json')
+
+    d1 = {'a': 1, 'b': ''}
+    resp = c.post('/json', json.dumps(d1), content_type='application/json')
+    print(resp.content)
+
 
 def test_jsonlistview():
     c = Client()

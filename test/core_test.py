@@ -3,22 +3,42 @@
 
 import pytest
 from params.core import ParamSet, Field, InvalidParams, FieldErrorInfo
+from params.utils import u_
 
 
 def test_field_null():
     f0 = Field(null=True)
 
-    f0.validate(None)
-    f0.validate('')
-    f0.validate(0)
+    assert None is f0.validate(None)
+    assert None is f0.validate('')
+    assert None is f0.validate(u_(''))
+    # 0 is not null, only '' and None are
+    assert 0 is f0.validate(0)
 
     f1 = Field(null=False)
     with pytest.raises(ValueError):
         f1.validate(None)
     with pytest.raises(ValueError):
         f1.validate('')
-    # 0 is not null, only '' and None are
-    f1.validate(0)
+    with pytest.raises(ValueError):
+        f1.validate(u_(''))
+    assert 0 is f1.validate(0)
+
+
+def test_field_null_values():
+    # change null_values
+    f0 = Field(null=True, null_values=(None, 0))
+
+    assert None is f0.validate(None)
+    assert None is f0.validate(0)
+    assert '' == f0.validate('')
+
+    f1 = f0.spawn(null=False)
+    with pytest.raises(ValueError):
+        f1.validate(None)
+    with pytest.raises(ValueError):
+        f1.validate(0)
+    assert '' == f0.validate('')
 
 
 def test_field_choices():

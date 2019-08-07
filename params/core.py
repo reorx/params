@@ -2,7 +2,7 @@
 
 import copy
 from six import with_metaclass
-from .utils import is_empty_string, unicode_copy, to_unicode, basestring_type
+from .utils import unicode_copy, to_unicode, basestring_type
 from .compat import PY2, unicode_ as u_
 
 __all__ = [
@@ -11,6 +11,9 @@ __all__ = [
     'ParamSet',
     'define_params',
 ]
+
+
+default_null_values = ('', u_(''), None, )
 
 
 class FieldErrorInfo(object):
@@ -77,13 +80,16 @@ class Field(object):
     def __init__(
             self, description=None,
             null=True, choices=None,
-            key=None, required=False, default=None, force_convert=False):
+            key=None, required=False, default=None, force_convert=False,
+            null_values=default_null_values,
+    ):
         """
         null, choices, work on Field.validate
         key, required, default, work on ParamSet.validate
         """
         self.description = description  # default message
         self.null = null
+        self.null_values = null_values
         self.choices = choices
 
         self.key = key
@@ -141,16 +147,20 @@ class Field(object):
         else:
             raise ValueError('could not convert {} to type {}: {}'.format(value, self.value_type, error))
 
+    def is_null(self, value):
+        return value in self.null_values
+
     def validate(self, value, convert=False):
-        if is_empty_string(value) or value is None:
+        if self.is_null(value):
             # If null is allowed, skip other validates
             if self.null:
-                return value
+                return None
             else:
-                raise self.format_exc('empty value is not allowed')
+                raise self.format_exc('empty value {!r} is not allowed'.format(value))
 
         if convert or self.force_convert:
             value = self._convert_type(value)
+
         self._validate_type(value)
 
         # Validate choices after type, so that the value has been converted

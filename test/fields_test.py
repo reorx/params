@@ -23,9 +23,10 @@ type_error_ctx = pytest.raises(TypeError)
 
 
 def test_string():
+    assert None is StringField().validate('')
 
-    f = StringField()
-    f.validate('')
+    f = StringField(null_values=(None, ))
+    assert '' == f.validate('')
 
     with value_error_ctx:
         f.validate(123)
@@ -53,7 +54,7 @@ def test_string():
     with value_error_ctx:
         StringField(length=(-1, 2))
 
-    f = StringField(length=(1, 2))
+    f = StringField(length=(1, 2), null_values=(None, ))
     f.validate('a')
     f.validate('aa')
     with value_error_ctx:
@@ -83,7 +84,7 @@ def test_regex(pattern, match, result):
 
 
 def test_words():
-    f0 = WordField()
+    f0 = WordField(null_values=(None, ))
     s = ''
     assert s == f0.validate(s)
     s = 'goodstr'
@@ -125,8 +126,8 @@ def test_words():
     ('@mal.com', False),
 ])
 def test_email(email, iseq):
-    f = EmailField()
     if iseq:
+    f = EmailField(null_values=(None, ))
         assert email == f.validate(email)
     else:
         pytest.raises(ValueError, f.validate, email)
