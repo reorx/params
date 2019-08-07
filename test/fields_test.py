@@ -34,7 +34,12 @@ def test_string():
     with value_error_ctx:
         StringField(length=-1)
 
-    f = StringField(length=1, null=False)
+    f = StringField(length=0, null_values=(None, ), null=False)
+    assert '' == f.validate('')
+    with value_error_ctx:
+        f.validate('a')
+
+    f = StringField(length=1, null_values=(None, ), null=False)
     f.validate('a')
     with value_error_ctx:
         f.validate('')

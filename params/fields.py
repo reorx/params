@@ -49,13 +49,13 @@ class StringField(Field):
             return length
 
         if isinstance(length, int):
-            if length <= 0:
-                raise ValueError('length min should be > 0: {}'.format(length))
+            if length < 0:
+                raise ValueError('length min should be >= 0: {}'.format(length))
         elif isinstance(length, tuple):
             if len(length) != 2:
                 raise ValueError('length tuple length should be exactly 2: {}'.format(length))
-            if length[0] <= 0:
-                raise ValueError('length min should be > 0: {}'.format(length[0]))
+            if length[0] < 0:
+                raise ValueError('length min should be >= 0: {}'.format(length[0]))
             if length[0] >= length[1]:
                 raise ValueError('lengh min should be < max: {}'.format(length))
         else:
@@ -66,7 +66,7 @@ class StringField(Field):
         super(StringField, self)._validate_type(value)
 
         # validate length
-        if self.length:
+        if self.length is not None:
             self._validate_length(value)
 
     def _convert_type(self, value):
