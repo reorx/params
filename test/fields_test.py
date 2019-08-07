@@ -113,8 +113,7 @@ def test_words():
         f2.validate('')
 
 
-@pytest.mark.parametrize('email, iseq', [
-    ('', True),
+@pytest.mark.parametrize('email, valid', [
     ('i@t.cn', True),
     ('longname@longdomain.cn', True),
     ('nor@mal.thr', True),
@@ -125,15 +124,15 @@ def test_words():
     ('nor@mal', False),
     ('@mal.com', False),
 ])
-def test_email(email, iseq):
-    if iseq:
+def test_email(email, valid):
     f = EmailField(null_values=(None, ))
+    if valid:
         assert email == f.validate(email)
     else:
         pytest.raises(ValueError, f.validate, email)
 
 
-@pytest.mark.parametrize('url, iseq', [
+@pytest.mark.parametrize('url, valid', [
     ('http://hello.com', True),
     ('https://askdjfasdf.asdfasdf.com/', True),
     ('ftp://www.google.com', True),
@@ -142,15 +141,15 @@ def test_email(email, iseq):
     ('http://a.b.c.d.e.f.g.com', True),
     ('http://t.cn/@#$#$(*&', True),
 ])
-def test_url(url, iseq):
+def test_url(url, valid):
     f = URLField()
-    if iseq:
+    if valid:
         assert url == f.validate(url)
     else:
         pytest.raises(ValueError, f.validate, url)
 
 
-@pytest.mark.parametrize('kwargs, v, iseq', [
+@pytest.mark.parametrize('kwargs, v, valid', [
     ({}, 'a', False),
     ({}, '0b', False),
     ({}, '1', False),
@@ -161,22 +160,22 @@ def test_url(url, iseq):
     ({'min': 0, 'max': 10}, 0, True),
     ({'min': 0, 'max': 10}, 11, False),
 ])
-def test_int(kwargs, v, iseq):
-    check_int(kwargs, v, iseq)
+def test_int(kwargs, v, valid):
+    check_int(kwargs, v, valid)
 
 
-@pytest.mark.parametrize('kwargs, v, iseq', [
+@pytest.mark.parametrize('kwargs, v, valid', [
     ({}, 'a', False),
     ({}, '1', True),
     ({}, '1.1', False),
 ])
-def test_int_convert(kwargs, v, iseq):
-    check_int(kwargs, v, iseq, True)
+def test_int_convert(kwargs, v, valid):
+    check_int(kwargs, v, valid, True)
 
 
-def check_int(kwargs, v, iseq, convert=False):
+def check_int(kwargs, v, valid, convert=False):
     f = IntegerField(**kwargs)
-    if iseq:
+    if valid:
         assert int(v) == f.validate(v, convert=convert)
     else:
         print(v, f.min, f.max)
@@ -255,14 +254,14 @@ def test_type_list_convert():
         list_field.validate(['a', '2', '3'], convert=True)
 
 
-@pytest.mark.parametrize('v, iseq', [
+@pytest.mark.parametrize('v, valid', [
     ('asdf', False),
     ('1234', False),
     ('216edfae-19c0-11e3-9e93-10604b8a89ab', True)
 ])
-def test_uuid(v, iseq):
+def test_uuid(v, valid):
     f = UUIDStringField()
-    if iseq:
+    if valid:
         assert v == f.validate(v)
     else:
         with value_error_ctx:
