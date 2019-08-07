@@ -207,17 +207,17 @@ class ParamSetMeta(type):
 
 
 class ParamSet(with_metaclass(ParamSetMeta, object)):
-    convert = False
+    convert_fields = False
 
     @classmethod
     def keys(cls):
         return [i.key for i in cls._fields.values()]
 
-    def __init__(self, raw_data, raise_if_invalid=True, convert=False):
+    def __init__(self, raw_data, raise_if_invalid=True, convert_fields=False):
         self._raw_data = unicode_copy(raw_data)
         self.data = {}
         self.errors = []
-        self.convert = convert
+        self.convert_fields = convert_fields
 
         self.validate(raise_if_invalid=raise_if_invalid)
 
@@ -231,7 +231,7 @@ class ParamSet(with_metaclass(ParamSetMeta, object)):
                 value = self._raw_data[key]
 
                 try:
-                    value = field.validate(value, convert=self.convert)
+                    value = field.validate(value, convert=self.convert_fields)
                 except ValueError as e:
                     self.errors.append(FieldErrorInfo(key, str(e)))
                 else:

@@ -11,7 +11,11 @@ from .base import get_params_cls, check_method
 
 
 def use_params(df, class_view=False, is_json=False, raise_if_invalid=True, is_list=False):
-    convert = not is_json
+    if is_json:
+        convert_fields = False
+    else:
+        convert_fields = True
+
     params_cls = get_params_cls(df)
     if is_list and not is_json:
         raise ValueError('is_json must be True when is_list is True')
@@ -27,9 +31,9 @@ def use_params(df, class_view=False, is_json=False, raise_if_invalid=True, is_li
                 if is_list:
                     if not isinstance(raw, list):
                         raise InvalidParams('request body must be of type list, got: {}'.format(type(raw)))
-                    request.params = [params_cls(x, convert=convert, raise_if_invalid=raise_if_invalid) for x in raw]
+                    request.params = [params_cls(x, convert_fields=convert_fields, raise_if_invalid=raise_if_invalid) for x in raw]
                 else:
-                    request.params = params_cls(raw, convert=convert, raise_if_invalid=raise_if_invalid)
+                    request.params = params_cls(raw, convert_fields=convert_fields, raise_if_invalid=raise_if_invalid)
                 return view_method(self, request, *args, **kwargs)
 
             return func
@@ -42,9 +46,9 @@ def use_params(df, class_view=False, is_json=False, raise_if_invalid=True, is_li
                 if is_list:
                     if not isinstance(raw, list):
                         raise InvalidParams('request body must be of type list, got: {}'.format(type(raw)))
-                    request.params = [params_cls(x, convert=convert, raise_if_invalid=raise_if_invalid) for x in raw]
+                    request.params = [params_cls(x, convert_fields=convert_fields, raise_if_invalid=raise_if_invalid) for x in raw]
                 else:
-                    request.params = params_cls(raw, convert=convert, raise_if_invalid=raise_if_invalid)
+                    request.params = params_cls(raw, convert_fields=convert_fields, raise_if_invalid=raise_if_invalid)
                 return view_func(request, *args, **kwargs)
 
             return func
