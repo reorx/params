@@ -17,4 +17,5 @@ test-coverage:
 		test
 
 publish:
-	python setup.py sdist bdist_wheel upload
+	python setup.py sdist bdist_wheel && \
+		python -m twine upload --skip-existing $(shell ls -t dist/*.whl | head -1)
