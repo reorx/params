@@ -89,6 +89,8 @@ class Field(object):
         """
         self.description = description  # default message
         self.null = null
+        if not isinstance(null_values, tuple):
+            raise TypeError('null_values must be a tuple')
         self.null_values = null_values
         self.choices = choices
 

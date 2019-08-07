@@ -26,8 +26,7 @@ def test_field_null():
 
 
 def test_field_null_values():
-    # change null_values
-    f0 = Field(null=True, null_values=(None, 0))
+    f0 = Field(null_values=(None, 0), null=True)
 
     assert None is f0.validate(None)
     assert None is f0.validate(0)
@@ -39,6 +38,10 @@ def test_field_null_values():
     with pytest.raises(ValueError):
         f1.validate(0)
     assert '' == f0.validate('')
+
+    # though null is not allowed, value will never be determined as null, so `null=False` won't take any effect
+    f2 = Field(null_values=(), null=False)
+    assert None is f2.validate(None)
 
 
 def test_field_choices():
