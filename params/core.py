@@ -166,7 +166,7 @@ class Field(object):
         self._validate_type(value)
 
         # Validate choices after type, so that the value has been converted
-        if self.choices:
+        if self.choices is not None:
             self._validate_choices(value)
 
         for method_name in self.extra_validation_methods:
