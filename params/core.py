@@ -223,9 +223,17 @@ class ParamSet(with_metaclass(ParamSetMeta, object)):
 
         self.validate(raise_if_invalid=raise_if_invalid)
 
+    def _check_additional(self):
+        keys = list(self.__class__.keys())
+        for k in self._raw_data:
+            if k not in keys:
+                raise InvalidParams('additional param {}, got {}'.format(k, self._raw_data[k]))
+
     def validate(self, raise_if_invalid=True):
         if not isinstance(self._raw_data, dict):
             raise InvalidParams('params data is not a dict')
+        self._check_additional()
+
         for name, field in self.__class__._fields.items():
             key = field.key
             if key in self._raw_data:
