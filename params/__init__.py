@@ -1,6 +1,6 @@
 # coding=utf-8
 
-__version__ = '0.8.0'
+__version__ = '0.8.1'
 
 from .core import *  # NOQA
 from .core import __all__ as __core_all
