@@ -182,9 +182,9 @@ class Field(object):
 
     def spawn(self, **kwargs):
         new = copy.copy(self)
-        new.__dict__.update(kwargs)
         # set key to None and init key by each field
         new.key = None
+        new.__dict__.update(kwargs)
         # for k, v in kwargs.iteritems():
         #     setattr(new, k, v)
         return new
