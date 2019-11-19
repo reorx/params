@@ -147,9 +147,26 @@ def test_spawn():
     f = Field(description=desc)
     f1 = f.spawn(required=True)
 
+    # test spawn attributes are changed
     assert f.required is False
     assert f1.required is True
     assert f.description == f1.description
+
+    # test spawn instances do not share key attr
+    assert f.key is None
+
+    class P0(ParamSet):
+        key0 = f
+
+    assert f.key == 'key0'
+
+    class P1(ParamSet):
+        key1 = f.spawn(null=True)
+
+    assert f.key == 'key0'
+
+    f.spawn(key='key2')
+    assert f.key == 'key0'
 
 
 def test_invalid_params():

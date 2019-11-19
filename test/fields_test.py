@@ -331,3 +331,29 @@ def test_boollean():
         assert v == False
     with pytest.raises(TypeError):
         v = f.validate('wtf', convert=True)
+
+
+def test_sub_class_field_spawn():
+    f = IntegerField(min=1, max=9)
+    assert f.min == 1
+    assert f.max == 9
+
+    f1 = f.spawn(min=2)
+    assert f1.min == 2
+    assert f1.max == 9
+
+    # test spawn instances do not share key attr
+    assert f.key is None
+
+    class P0(ParamSet):
+        key0 = f
+
+    assert f.key == 'key0'
+
+    class P1(ParamSet):
+        key1 = f.spawn(null=True)
+
+    assert f.key == 'key0'
+
+    f.spawn(key='key2')
+    assert f.key == 'key0'
