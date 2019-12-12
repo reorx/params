@@ -70,6 +70,21 @@ def test_field_key():
     assert p.f0 == d['0f']
 
 
+def test_addtional_key():
+    class P(ParamSet):
+        check_addtional = True
+        f0 = Field()
+
+    d = {'0f': 1, 'f0': 2}
+    try:
+        # will raise exception
+        P(d)
+        raise Exception('failed')
+    except InvalidParams as e:
+        # success
+        assert str(e) == 'additional param 0f, got 1'
+
+
 def test_field_required():
     class P(ParamSet):
         f0 = Field(required=True)

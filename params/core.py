@@ -210,6 +210,7 @@ class ParamSetMeta(type):
 
 class ParamSet(with_metaclass(ParamSetMeta, object)):
     convert_fields = False
+    check_addtional = False
 
     @classmethod
     def keys(cls):
@@ -232,7 +233,8 @@ class ParamSet(with_metaclass(ParamSetMeta, object)):
     def validate(self, raise_if_invalid=True):
         if not isinstance(self._raw_data, dict):
             raise InvalidParams('params data is not a dict')
-        self._check_additional()
+        if self.check_addtional:
+            self._check_additional()
 
         for name, field in self.__class__._fields.items():
             key = field.key
