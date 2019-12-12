@@ -212,6 +212,7 @@ class ParamSetMeta(type):
 
 class ParamSet(with_metaclass(ParamSetMeta, object)):
     convert_fields = False
+    no_additional_keys = False
 
     @classmethod
     def keys(cls):
@@ -228,8 +229,11 @@ class ParamSet(with_metaclass(ParamSetMeta, object)):
     def validate(self, raise_if_invalid=True):
         if not isinstance(self._raw_data, dict):
             raise InvalidParams('params data is not a dict')
+
+        field_keys = []
         for name, field in self.__class__._fields.items():
             key = field.key
+            field_keys.append(key)
             if key in self._raw_data:
 
                 value = self._raw_data[key]
@@ -245,6 +249,10 @@ class ParamSet(with_metaclass(ParamSetMeta, object)):
                     self.errors.append(FieldErrorInfo(key, field.format_exc('%s is required' % key)))
                 # elif field.default is not None:
                 #     self.data[key] = field.default
+
+        for k in self._raw_data:
+            if self.no_additional_keys and k not in field_keys:
+                self.errors.append(FieldErrorInfo(k, 'additional key {} is not allowed'.format(k)))
 
         # first loop, validate each field independently
         non_field_validate_funcs = []

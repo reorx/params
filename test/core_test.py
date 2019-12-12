@@ -70,6 +70,19 @@ def test_field_key():
     assert p.f0 == d['0f']
 
 
+def test_no_additional_keys():
+    class P(ParamSet):
+        no_additional_keys = True
+        f0 = Field()
+
+    d = {'f0': 1, 'f1': 2}
+    with pytest.raises(InvalidParams) as excinfo:
+        P(d)
+    e = excinfo.value
+    assert len(e.errors) == 1
+    assert e.errors[0].message == 'additional key f1 is not allowed'
+
+
 def test_field_required():
     class P(ParamSet):
         f0 = Field(required=True)
